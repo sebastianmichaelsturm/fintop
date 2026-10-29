@@ -118,6 +118,50 @@ impl TimeRange {
             _ => None,
         }
     }
+
+    pub fn cursor_step(&self) -> usize {
+        match self {
+            TimeRange::OneDay => 12,    // 12 * 5m = 1 hour
+            TimeRange::FiveDays => 8,   // 8 * 15m = 2 hours
+            TimeRange::OneMonth => 2,   // 2 days
+            TimeRange::SixMonths => 5,  // 1 week (5 trading days)
+            TimeRange::OneYear => 20,   // ~1 month
+            TimeRange::FiveYears => 4,  // ~1 month (4 weeks)
+        }
+    }
+
+    pub fn step_label(&self) -> &'static str {
+        match self {
+            TimeRange::OneDay => "1h",
+            TimeRange::FiveDays => "2h",
+            TimeRange::OneMonth => "2d",
+            TimeRange::SixMonths => "1w",
+            TimeRange::OneYear => "1mo",
+            TimeRange::FiveYears => "1mo",
+        }
+    }
+
+    pub fn approx_duration_secs(&self) -> i64 {
+        match self {
+            TimeRange::OneDay => 86_400,
+            TimeRange::FiveDays => 5 * 86_400,
+            TimeRange::OneMonth => 30 * 86_400,
+            TimeRange::SixMonths => 182 * 86_400,
+            TimeRange::OneYear => 365 * 86_400,
+            TimeRange::FiveYears => 5 * 365 * 86_400,
+        }
+    }
+
+    pub fn window_shift_secs(&self) -> i64 {
+        match self {
+            TimeRange::OneDay => 86_400,
+            TimeRange::FiveDays => 86_400,
+            TimeRange::OneMonth => 7 * 86_400,
+            TimeRange::SixMonths => 30 * 86_400,
+            TimeRange::OneYear => 30 * 86_400,
+            TimeRange::FiveYears => 182 * 86_400,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

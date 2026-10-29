@@ -109,10 +109,28 @@ fn run_loop<B: ratatui::backend::Backend>(
                             KeyCode::Esc | KeyCode::Char('q') | KeyCode::Backspace => {
                                 app.close_trend_window();
                             }
-                            KeyCode::Tab | KeyCode::Char('t') | KeyCode::Right | KeyCode::Char('l') => {
+                            KeyCode::Char('h') => {
+                                app.cursor_left(true);
+                            }
+                            KeyCode::Char('l') => {
+                                app.cursor_right(true);
+                            }
+                            KeyCode::Left => {
+                                app.cursor_left(false);
+                            }
+                            KeyCode::Right => {
+                                app.cursor_right(false);
+                            }
+                            KeyCode::Home | KeyCode::Char('0') => {
+                                app.cursor_home();
+                            }
+                            KeyCode::End | KeyCode::Char('$') => {
+                                app.cursor_end();
+                            }
+                            KeyCode::Tab | KeyCode::Char('t') => {
                                 app.cycle_trend_range();
                             }
-                            KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => {
+                            KeyCode::BackTab => {
                                 app.prev_trend_range();
                             }
                             KeyCode::Char(c @ '1'..='6') => {

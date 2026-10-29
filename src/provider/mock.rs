@@ -63,11 +63,17 @@ impl MockMarketEngine {
         }
     }
 
-    pub fn generate_trend(&mut self, current_price: f64, range: TimeRange) -> Vec<TrendPoint> {
-        let now = SystemTime::now()
+    pub fn generate_trend(
+        &mut self,
+        current_price: f64,
+        range: TimeRange,
+        offset_secs: i64,
+    ) -> Vec<TrendPoint> {
+        let base_now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_secs() as i64)
             .unwrap_or(1700000000);
+        let now = base_now + offset_secs;
 
         let (num_points, step_secs, vol) = match range {
             TimeRange::OneDay => (78, 300, 0.002),

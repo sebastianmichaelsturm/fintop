@@ -166,12 +166,27 @@ pub async fn fetch_historical_trend(
     client: &reqwest::Client,
     symbol: &str,
     range: TimeRange,
+    offset_secs: i64,
 ) -> Result<Vec<TrendPoint>, String> {
     let (range_param, interval_param) = range.yahoo_params();
-    let url = format!(
-        "https://query1.finance.yahoo.com/v8/finance/chart/{}?range={}&interval={}",
-        symbol, range_param, interval_param
-    );
+    let url = if offset_secs == 0 {
+        format!(
+            "https://query1.finance.yahoo.com/v8/finance/chart/{}?range={}&interval={}",
+            symbol, range_param, interval_param
+        )
+    } else {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs() as i64)
+            .unwrap_or(1730000000);
+        let end = now + offset_secs;
+        let duration = range.approx_duration_secs();
+        let start = end - duration;
+        format!(
+            "https://query1.finance.yahoo.com/v8/finance/chart/{}?interval={}&period1={}&period2={}",
+            symbol, interval_param, start, end
+        )
+    };
 
     let resp = client
         .get(&url)

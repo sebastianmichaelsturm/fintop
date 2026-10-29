@@ -36,6 +36,8 @@ pub struct TrendState {
     pub points: Vec<TrendPoint>,
     pub is_loading: bool,
     pub error: Option<String>,
+    pub cursor_index: usize,
+    pub window_offset_secs: i64,
 }
 
 impl TrendState {
@@ -45,6 +47,22 @@ impl TrendState {
 
     pub fn period_close(&self) -> Option<f64> {
         self.points.last().map(|p| p.price).or(Some(self.current_price))
+    }
+
+    pub fn selected_point(&self) -> Option<&TrendPoint> {
+        if self.points.is_empty() {
+            None
+        } else {
+            self.points.get(self.cursor_index.min(self.points.len() - 1))
+        }
+    }
+
+    pub fn selected_diff(&self) -> Option<(f64, f64)> {
+        let open = self.period_open()?;
+        let cur = self.selected_point()?.price;
+        let diff = cur - open;
+        let pct = if open > 0.0 { (diff / open) * 100.0 } else { 0.0 };
+        Some((diff, pct))
     }
 
     pub fn period_min(&self) -> Option<f64> {
@@ -152,12 +170,17 @@ impl App {
                 WorkerEvent::TrendDataReceived {
                     symbol,
                     range,
+                    offset_secs,
                     points,
                 } => {
                     if let Some(ref mut trend) = self.trend_state {
-                        if trend.symbol == symbol && trend.time_range == range {
+                        if trend.symbol == symbol && trend.time_range == range && trend.window_offset_secs == offset_secs {
+                            let was_empty = trend.points.is_empty();
                             trend.points = points;
                             trend.is_loading = false;
+                            if was_empty || trend.cursor_index >= trend.points.len() {
+                                trend.cursor_index = trend.points.len().saturating_sub(1);
+                            }
                         }
                     }
                 }
@@ -423,12 +446,15 @@ impl App {
                     points: Vec::new(),
                     is_loading: true,
                     error: None,
+                    cursor_index: 0,
+                    window_offset_secs: 0,
                 });
 
                 let _ = self.tx_worker.try_send(WorkerCommand::FetchTrend {
                     symbol,
                     range: default_range,
                     current_price,
+                    offset_secs: 0,
                 });
             }
         }
@@ -442,6 +468,8 @@ impl App {
         if let Some(ref mut trend) = self.trend_state {
             if trend.time_range != range {
                 trend.time_range = range;
+                trend.window_offset_secs = 0;
+                trend.cursor_index = 0;
                 trend.is_loading = true;
                 let symbol = trend.symbol.clone();
                 let current_price = trend.current_price;
@@ -449,6 +477,7 @@ impl App {
                     symbol,
                     range,
                     current_price,
+                    offset_secs: 0,
                 });
             }
         }
@@ -474,11 +503,100 @@ impl App {
             let symbol = trend.symbol.clone();
             let range = trend.time_range;
             let current_price = trend.current_price;
+            let offset_secs = trend.window_offset_secs;
             let _ = self.tx_worker.try_send(WorkerCommand::FetchTrend {
                 symbol,
                 range,
                 current_price,
+                offset_secs,
             });
+        }
+    }
+
+    pub fn cursor_left(&mut self, coarse: bool) {
+        if let Some(ref mut trend) = self.trend_state {
+            if trend.points.is_empty() {
+                return;
+            }
+            let step = if coarse { trend.time_range.cursor_step() } else { 1 };
+            if trend.cursor_index >= step {
+                trend.cursor_index -= step;
+            } else if trend.cursor_index > 0 {
+                trend.cursor_index = 0;
+            } else {
+                // At left edge: scroll time window into the past!
+                let shift = trend.time_range.window_shift_secs();
+                trend.window_offset_secs -= shift;
+                trend.is_loading = true;
+                let symbol = trend.symbol.clone();
+                let range = trend.time_range;
+                let current_price = trend.current_price;
+                let offset_secs = trend.window_offset_secs;
+                trend.cursor_index = trend.points.len().saturating_sub(1);
+                let _ = self.tx_worker.try_send(WorkerCommand::FetchTrend {
+                    symbol,
+                    range,
+                    current_price,
+                    offset_secs,
+                });
+            }
+        }
+    }
+
+    pub fn cursor_right(&mut self, coarse: bool) {
+        if let Some(ref mut trend) = self.trend_state {
+            if trend.points.is_empty() {
+                return;
+            }
+            let step = if coarse { trend.time_range.cursor_step() } else { 1 };
+            let max_idx = trend.points.len().saturating_sub(1);
+            if trend.cursor_index + step <= max_idx {
+                trend.cursor_index += step;
+            } else if trend.cursor_index < max_idx {
+                trend.cursor_index = max_idx;
+            } else if trend.window_offset_secs < 0 {
+                // At right edge and window was shifted into past: scroll window forward!
+                let shift = trend.time_range.window_shift_secs();
+                trend.window_offset_secs = (trend.window_offset_secs + shift).min(0);
+                trend.is_loading = true;
+                let symbol = trend.symbol.clone();
+                let range = trend.time_range;
+                let current_price = trend.current_price;
+                let offset_secs = trend.window_offset_secs;
+                trend.cursor_index = 0;
+                let _ = self.tx_worker.try_send(WorkerCommand::FetchTrend {
+                    symbol,
+                    range,
+                    current_price,
+                    offset_secs,
+                });
+            }
+        }
+    }
+
+    pub fn cursor_home(&mut self) {
+        if let Some(ref mut trend) = self.trend_state {
+            trend.cursor_index = 0;
+        }
+    }
+
+    pub fn cursor_end(&mut self) {
+        if let Some(ref mut trend) = self.trend_state {
+            if trend.window_offset_secs < 0 {
+                trend.window_offset_secs = 0;
+                trend.is_loading = true;
+                let symbol = trend.symbol.clone();
+                let range = trend.time_range;
+                let current_price = trend.current_price;
+                let _ = self.tx_worker.try_send(WorkerCommand::FetchTrend {
+                    symbol,
+                    range,
+                    current_price,
+                    offset_secs: 0,
+                });
+            } else if !trend.points.is_empty() {
+                trend.cursor_index = trend.points.len() - 1;
+            }
         }
     }
 }

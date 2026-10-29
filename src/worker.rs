@@ -17,6 +17,7 @@ pub enum WorkerCommand {
         symbol: String,
         range: TimeRange,
         current_price: f64,
+        offset_secs: i64,
     },
     ForceRefresh,
 }
@@ -31,6 +32,7 @@ pub enum WorkerEvent {
     TrendDataReceived {
         symbol: String,
         range: TimeRange,
+        offset_secs: i64,
         points: Vec<TrendPoint>,
     },
     FetchStatus {
@@ -97,8 +99,8 @@ impl MarketWorker {
                         WorkerCommand::CancelConstituents => {
                             self.active_constituents = None;
                         }
-                        WorkerCommand::FetchTrend { symbol, range, current_price } => {
-                            self.fetch_trend(&symbol, range, current_price, http_client.as_ref()).await;
+                        WorkerCommand::FetchTrend { symbol, range, current_price, offset_secs } => {
+                            self.fetch_trend(&symbol, range, current_price, offset_secs, http_client.as_ref()).await;
                         }
                         WorkerCommand::ForceRefresh => {
                             self.do_fetch(http_client.as_ref()).await;
@@ -215,13 +217,15 @@ impl MarketWorker {
         symbol: &str,
         range: TimeRange,
         current_price: f64,
+        offset_secs: i64,
         http_client: Option<&reqwest::Client>,
     ) {
         if let Some(client) = http_client {
-            if let Ok(points) = fetch_historical_trend(client, symbol, range).await {
+            if let Ok(points) = fetch_historical_trend(client, symbol, range, offset_secs).await {
                 let _ = self.tx_evt.send(WorkerEvent::TrendDataReceived {
                     symbol: symbol.to_string(),
                     range,
+                    offset_secs,
                     points,
                 }).await;
                 return;
@@ -229,10 +233,11 @@ impl MarketWorker {
         }
 
         // Fallback or demo simulation
-        let points = self.mock_engine.generate_trend(current_price, range);
+        let points = self.mock_engine.generate_trend(current_price, range, offset_secs);
         let _ = self.tx_evt.send(WorkerEvent::TrendDataReceived {
             symbol: symbol.to_string(),
             range,
+            offset_secs,
             points,
         }).await;
     }

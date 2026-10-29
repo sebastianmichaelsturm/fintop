@@ -170,7 +170,7 @@ fn test_time_range_navigation_and_params() {
 fn test_mock_trend_generation() {
     let mut engine = MockMarketEngine::new();
     let current_price = 215.38;
-    let points = engine.generate_trend(current_price, TimeRange::OneMonth);
+    let points = engine.generate_trend(current_price, TimeRange::OneMonth, 0);
 
     assert!(!points.is_empty(), "Points should not be empty");
     assert_eq!(points.len(), 30, "OneMonth should generate 30 points");
@@ -241,6 +241,8 @@ fn test_trend_state_period_metrics() {
         points,
         is_loading: false,
         error: None,
+        cursor_index: 0,
+        window_offset_secs: 0,
     };
 
     assert_eq!(state.period_open(), Some(100.0));
@@ -251,6 +253,60 @@ fn test_trend_state_period_metrics() {
     let (diff, pct) = state.period_change();
     assert_eq!(diff, 10.0);
     assert_eq!(pct, 10.0); // (110 - 100) / 100 * 100 = 10%
+}
+
+#[test]
+fn test_cursor_navigation_and_window_scroll() {
+    use fintop::worker::WorkerCommand;
+
+    let (tx_cmd, mut rx_cmd) = mpsc::channel(32);
+    let (_tx_evt, rx_evt) = mpsc::channel(64);
+    let mut app = App::new(tx_cmd, rx_evt, true);
+
+    app.enter_index();
+    app.open_trend_window();
+
+    // Drain prior worker commands (e.g. PollConstituents and initial FetchTrend)
+    while rx_cmd.try_recv().is_ok() {}
+
+    let trend = app.trend_state.as_mut().unwrap();
+    trend.time_range = TimeRange::OneDay; // 1D resolution: cursor_step is 12 (1 hour)
+    trend.points = (0..50)
+        .map(|i| TrendPoint {
+            timestamp: 1000 + i * 300,
+            price: 100.0 + i as f64,
+        })
+        .collect();
+    trend.cursor_index = 48; // near right edge
+
+    // Step left coarse (h): jumps by 12 points (1 hour)
+    app.cursor_left(true);
+    assert_eq!(app.trend_state.as_ref().unwrap().cursor_index, 36);
+
+    // Step right coarse (l): jumps by 12 points (1 hour)
+    app.cursor_right(true);
+    assert_eq!(app.trend_state.as_ref().unwrap().cursor_index, 48);
+
+    // Step fine right (→): jumps by 1 point to max (49)
+    app.cursor_right(false);
+    assert_eq!(app.trend_state.as_ref().unwrap().cursor_index, 49);
+
+    // Jump home (0)
+    app.cursor_home();
+    assert_eq!(app.trend_state.as_ref().unwrap().cursor_index, 0);
+
+    // Step left at index 0 triggers window scroll into past!
+    app.cursor_left(true);
+    assert!(app.trend_state.as_ref().unwrap().window_offset_secs < 0);
+    // Worker command was dispatched for new offset
+    if let Ok(cmd) = rx_cmd.try_recv() {
+        match cmd {
+            WorkerCommand::FetchTrend { offset_secs, .. } => {
+                assert!(offset_secs < 0);
+            }
+            _ => panic!("Expected FetchTrend command with negative offset"),
+        }
+    }
 }
 
 #[test]
