@@ -1,5 +1,6 @@
+use crate::model::{TimeRange, TrendPoint};
 use crate::provider::mock::MockMarketEngine;
-use crate::provider::yahoo::{create_http_client, fetch_quotes_batch, QuoteUpdate};
+use crate::provider::yahoo::{create_http_client, fetch_historical_trend, fetch_quotes_batch, QuoteUpdate};
 use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::interval;
@@ -12,6 +13,11 @@ pub enum WorkerCommand {
         symbols: Vec<String>,
     },
     CancelConstituents,
+    FetchTrend {
+        symbol: String,
+        range: TimeRange,
+        current_price: f64,
+    },
     ForceRefresh,
 }
 
@@ -21,6 +27,11 @@ pub enum WorkerEvent {
     StocksUpdated {
         index_id: String,
         quotes: Vec<QuoteUpdate>,
+    },
+    TrendDataReceived {
+        symbol: String,
+        range: TimeRange,
+        points: Vec<TrendPoint>,
     },
     FetchStatus {
         is_live: bool,
@@ -85,6 +96,9 @@ impl MarketWorker {
                         }
                         WorkerCommand::CancelConstituents => {
                             self.active_constituents = None;
+                        }
+                        WorkerCommand::FetchTrend { symbol, range, current_price } => {
+                            self.fetch_trend(&symbol, range, current_price, http_client.as_ref()).await;
                         }
                         WorkerCommand::ForceRefresh => {
                             self.do_fetch(http_client.as_ref()).await;
@@ -194,5 +208,32 @@ impl MarketWorker {
             day_low: dummy.day_low,
             volume: dummy.volume,
         }
+    }
+
+    async fn fetch_trend(
+        &mut self,
+        symbol: &str,
+        range: TimeRange,
+        current_price: f64,
+        http_client: Option<&reqwest::Client>,
+    ) {
+        if let Some(client) = http_client {
+            if let Ok(points) = fetch_historical_trend(client, symbol, range).await {
+                let _ = self.tx_evt.send(WorkerEvent::TrendDataReceived {
+                    symbol: symbol.to_string(),
+                    range,
+                    points,
+                }).await;
+                return;
+            }
+        }
+
+        // Fallback or demo simulation
+        let points = self.mock_engine.generate_trend(current_price, range);
+        let _ = self.tx_evt.send(WorkerEvent::TrendDataReceived {
+            symbol: symbol.to_string(),
+            range,
+            points,
+        }).await;
     }
 }

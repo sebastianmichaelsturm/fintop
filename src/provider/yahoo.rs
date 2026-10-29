@@ -1,3 +1,4 @@
+use crate::model::{TimeRange, TrendPoint};
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::task::JoinSet;
@@ -133,4 +134,90 @@ pub async fn fetch_quotes_batch(
     }
 
     results
+}
+
+#[derive(Deserialize, Debug)]
+struct HistoricalChartResponse {
+    chart: HistoricalChartBody,
+}
+
+#[derive(Deserialize, Debug)]
+struct HistoricalChartBody {
+    result: Option<Vec<HistoricalChartResult>>,
+}
+
+#[derive(Deserialize, Debug)]
+struct HistoricalChartResult {
+    timestamp: Option<Vec<i64>>,
+    indicators: Option<HistoricalIndicators>,
+}
+
+#[derive(Deserialize, Debug)]
+struct HistoricalIndicators {
+    quote: Option<Vec<HistoricalQuoteData>>,
+}
+
+#[derive(Deserialize, Debug)]
+struct HistoricalQuoteData {
+    close: Option<Vec<Option<f64>>>,
+}
+
+pub async fn fetch_historical_trend(
+    client: &reqwest::Client,
+    symbol: &str,
+    range: TimeRange,
+) -> Result<Vec<TrendPoint>, String> {
+    let (range_param, interval_param) = range.yahoo_params();
+    let url = format!(
+        "https://query1.finance.yahoo.com/v8/finance/chart/{}?range={}&interval={}",
+        symbol, range_param, interval_param
+    );
+
+    let resp = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("HTTP request error for {} trend: {}", symbol, e))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("HTTP error {}: {} trend", resp.status(), symbol));
+    }
+
+    let parsed: HistoricalChartResponse = resp
+        .json()
+        .await
+        .map_err(|e| format!("JSON decode error for {} trend: {}", symbol, e))?;
+
+    let result = parsed
+        .chart
+        .result
+        .and_then(|mut r| if !r.is_empty() { Some(r.remove(0)) } else { None })
+        .ok_or_else(|| format!("Empty historical chart result for {}", symbol))?;
+
+    let timestamps = result.timestamp.unwrap_or_default();
+    let closes = result
+        .indicators
+        .and_then(|ind| ind.quote)
+        .and_then(|mut q| if !q.is_empty() { q.remove(0).close } else { None })
+        .unwrap_or_default();
+
+    let count = timestamps.len().min(closes.len());
+    let mut points = Vec::with_capacity(count);
+
+    for i in 0..count {
+        if let Some(price) = closes[i] {
+            if price > 0.0 && !price.is_nan() && !price.is_infinite() {
+                points.push(TrendPoint {
+                    timestamp: timestamps[i],
+                    price,
+                });
+            }
+        }
+    }
+
+    if points.is_empty() {
+        return Err(format!("No valid historical price points found for {}", symbol));
+    }
+
+    Ok(points)
 }

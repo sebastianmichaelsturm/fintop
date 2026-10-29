@@ -39,8 +39,10 @@ pub fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
                 Span::styled(" Navigate", desc_style),
             ]),
             ViewMode::Constituents { .. } => Line::from(vec![
+                Span::styled("[Enter]", key_style),
+                Span::styled(" Trend Chart  ", desc_style),
                 Span::styled("[Esc/q]", key_style),
-                Span::styled(" Back to Indices  ", desc_style),
+                Span::styled(" Back  ", desc_style),
                 Span::styled("[s]", key_style),
                 Span::styled(" Sort  ", desc_style),
                 Span::styled("[d]", key_style),
@@ -52,7 +54,7 @@ pub fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
                 Span::styled("[Space]", key_style),
                 Span::styled(if app.is_paused { " Resume  " } else { " Pause  " }, desc_style),
                 Span::styled("[↑/↓, j/k]", key_style),
-                Span::styled(" Navigate", desc_style),
+                Span::styled(" Nav", desc_style),
             ]),
         }
     };

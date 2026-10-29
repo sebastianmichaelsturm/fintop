@@ -2,12 +2,14 @@ pub mod constituents_table;
 pub mod footer;
 pub mod header;
 pub mod indices_table;
+pub mod trend_modal;
 
 use crate::app::{App, ViewMode};
 use constituents_table::render_constituents_table;
 use footer::render_footer;
 use header::render_header;
 use indices_table::render_indices_table;
+use trend_modal::render_trend_modal;
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     Frame,
@@ -31,4 +33,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     }
 
     render_footer(frame, app, chunks[2]);
+
+    if let Some(ref trend) = app.trend_state {
+        render_trend_modal(frame, trend, frame.area());
+    }
 }

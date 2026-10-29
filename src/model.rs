@@ -32,6 +32,100 @@ pub struct ConstituentStock {
     pub shares_outstanding: u64,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TimeRange {
+    OneDay,
+    FiveDays,
+    OneMonth,
+    SixMonths,
+    OneYear,
+    FiveYears,
+}
+
+impl TimeRange {
+    pub const ALL: [TimeRange; 6] = [
+        TimeRange::OneDay,
+        TimeRange::FiveDays,
+        TimeRange::OneMonth,
+        TimeRange::SixMonths,
+        TimeRange::OneYear,
+        TimeRange::FiveYears,
+    ];
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            TimeRange::OneDay => "1D",
+            TimeRange::FiveDays => "5D",
+            TimeRange::OneMonth => "1M",
+            TimeRange::SixMonths => "6M",
+            TimeRange::OneYear => "1Y",
+            TimeRange::FiveYears => "5Y",
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            TimeRange::OneDay => "1 Day (5m)",
+            TimeRange::FiveDays => "5 Days (15m)",
+            TimeRange::OneMonth => "1 Month (1d)",
+            TimeRange::SixMonths => "6 Months (1d)",
+            TimeRange::OneYear => "1 Year (1d)",
+            TimeRange::FiveYears => "5 Years (1wk)",
+        }
+    }
+
+    pub fn yahoo_params(&self) -> (&'static str, &'static str) {
+        match self {
+            TimeRange::OneDay => ("1d", "5m"),
+            TimeRange::FiveDays => ("5d", "15m"),
+            TimeRange::OneMonth => ("1mo", "1d"),
+            TimeRange::SixMonths => ("6mo", "1d"),
+            TimeRange::OneYear => ("1y", "1d"),
+            TimeRange::FiveYears => ("5y", "1wk"),
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        match self {
+            TimeRange::OneDay => TimeRange::FiveDays,
+            TimeRange::FiveDays => TimeRange::OneMonth,
+            TimeRange::OneMonth => TimeRange::SixMonths,
+            TimeRange::SixMonths => TimeRange::OneYear,
+            TimeRange::OneYear => TimeRange::FiveYears,
+            TimeRange::FiveYears => TimeRange::OneDay,
+        }
+    }
+
+    pub fn prev(&self) -> Self {
+        match self {
+            TimeRange::OneDay => TimeRange::FiveYears,
+            TimeRange::FiveDays => TimeRange::OneDay,
+            TimeRange::OneMonth => TimeRange::FiveDays,
+            TimeRange::SixMonths => TimeRange::OneMonth,
+            TimeRange::OneYear => TimeRange::SixMonths,
+            TimeRange::FiveYears => TimeRange::OneYear,
+        }
+    }
+
+    pub fn from_key_number(num: char) -> Option<Self> {
+        match num {
+            '1' => Some(TimeRange::OneDay),
+            '2' => Some(TimeRange::FiveDays),
+            '3' => Some(TimeRange::OneMonth),
+            '4' => Some(TimeRange::SixMonths),
+            '5' => Some(TimeRange::OneYear),
+            '6' => Some(TimeRange::FiveYears),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TrendPoint {
+    pub timestamp: i64,
+    pub price: f64,
+}
+
 #[derive(Debug, Clone)]
 pub struct MarketIndex {
     pub id: String,

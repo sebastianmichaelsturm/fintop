@@ -104,7 +104,28 @@ fn run_loop<B: ratatui::backend::Backend>(
         if event::poll(Duration::from_millis(33))? {
             if let CEvent::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
-                    if app.is_filtering {
+                    if app.trend_state.is_some() {
+                        match key.code {
+                            KeyCode::Esc | KeyCode::Char('q') | KeyCode::Backspace => {
+                                app.close_trend_window();
+                            }
+                            KeyCode::Tab | KeyCode::Char('t') | KeyCode::Right | KeyCode::Char('l') => {
+                                app.cycle_trend_range();
+                            }
+                            KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => {
+                                app.prev_trend_range();
+                            }
+                            KeyCode::Char(c @ '1'..='6') => {
+                                if let Some(range) = model::TimeRange::from_key_number(c) {
+                                    app.set_trend_range(range);
+                                }
+                            }
+                            KeyCode::Char('r') => {
+                                app.refresh_trend();
+                            }
+                            _ => {}
+                        }
+                    } else if app.is_filtering {
                         match key.code {
                             KeyCode::Esc => {
                                 app.filter_query.clear();
@@ -139,8 +160,9 @@ fn run_loop<B: ratatui::backend::Backend>(
                                 }
                             }
                             KeyCode::Enter => {
-                                if app.view_mode == ViewMode::Indices {
-                                    app.enter_index();
+                                match app.view_mode {
+                                    ViewMode::Indices => app.enter_index(),
+                                    ViewMode::Constituents { .. } => app.open_trend_window(),
                                 }
                             }
                             KeyCode::Char('/') => {

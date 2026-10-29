@@ -1,7 +1,8 @@
 use fintop::app::App;
 use fintop::filter::{matches_index, matches_stock};
-use fintop::model::{Region, SortColumn, SortDirection};
+use fintop::model::{Region, SortColumn, SortDirection, TimeRange, TrendPoint};
 use fintop::provider::dataset::get_default_indices;
+use fintop::provider::mock::MockMarketEngine;
 use tokio::sync::mpsc;
 
 #[test]
@@ -141,4 +142,113 @@ fn test_constituent_roster_counts() {
 
     let nasdaq = indices.iter().find(|i| i.id == "nasdaq100").unwrap();
     assert_eq!(nasdaq.constituents.len(), 50, "Nasdaq sample constituents must be populated");
+}
+
+#[test]
+fn test_time_range_navigation_and_params() {
+    assert_eq!(TimeRange::OneDay.next(), TimeRange::FiveDays);
+    assert_eq!(TimeRange::FiveDays.next(), TimeRange::OneMonth);
+    assert_eq!(TimeRange::OneMonth.next(), TimeRange::SixMonths);
+    assert_eq!(TimeRange::SixMonths.next(), TimeRange::OneYear);
+    assert_eq!(TimeRange::OneYear.next(), TimeRange::FiveYears);
+    assert_eq!(TimeRange::FiveYears.next(), TimeRange::OneDay);
+
+    assert_eq!(TimeRange::OneDay.prev(), TimeRange::FiveYears);
+    assert_eq!(TimeRange::FiveYears.prev(), TimeRange::OneYear);
+
+    assert_eq!(TimeRange::from_key_number('1'), Some(TimeRange::OneDay));
+    assert_eq!(TimeRange::from_key_number('3'), Some(TimeRange::OneMonth));
+    assert_eq!(TimeRange::from_key_number('6'), Some(TimeRange::FiveYears));
+    assert_eq!(TimeRange::from_key_number('9'), None);
+
+    assert_eq!(TimeRange::OneDay.yahoo_params(), ("1d", "5m"));
+    assert_eq!(TimeRange::OneMonth.yahoo_params(), ("1mo", "1d"));
+    assert_eq!(TimeRange::FiveYears.yahoo_params(), ("5y", "1wk"));
+}
+
+#[test]
+fn test_mock_trend_generation() {
+    let mut engine = MockMarketEngine::new();
+    let current_price = 215.38;
+    let points = engine.generate_trend(current_price, TimeRange::OneMonth);
+
+    assert!(!points.is_empty(), "Points should not be empty");
+    assert_eq!(points.len(), 30, "OneMonth should generate 30 points");
+
+    // Timestamps must be sorted ascending
+    for i in 0..points.len() - 1 {
+        assert!(points[i].timestamp < points[i + 1].timestamp, "Timestamps out of chronological order");
+        assert!(points[i].price > 0.0, "Price must be strictly positive");
+    }
+
+    // Last point must match current_price
+    let last = points.last().unwrap();
+    assert_eq!(last.price, current_price);
+}
+
+#[test]
+fn test_open_and_close_trend_modal() {
+    let (tx_cmd, _rx_cmd) = mpsc::channel(32);
+    let (_tx_evt, rx_evt) = mpsc::channel(64);
+    let mut app = App::new(tx_cmd, rx_evt, true);
+
+    // Initial state: no modal
+    assert!(app.trend_state.is_none());
+
+    // Enter index view
+    app.enter_index();
+    let selected_stock = app.sorted_constituents()[0].clone();
+
+    // Open trend window
+    app.open_trend_window();
+    assert!(app.trend_state.is_some());
+
+    let trend = app.trend_state.as_ref().unwrap();
+    assert_eq!(trend.symbol, selected_stock.symbol);
+    assert_eq!(trend.current_price, selected_stock.current_price);
+    assert_eq!(trend.time_range, TimeRange::OneMonth); // Default is 1M
+
+    // Cycle timeframe
+    app.cycle_trend_range();
+    assert_eq!(app.trend_state.as_ref().unwrap().time_range, TimeRange::SixMonths);
+
+    // Direct jump
+    app.set_trend_range(TimeRange::OneDay);
+    assert_eq!(app.trend_state.as_ref().unwrap().time_range, TimeRange::OneDay);
+
+    // Close modal
+    app.close_trend_window();
+    assert!(app.trend_state.is_none());
+}
+
+#[test]
+fn test_trend_state_period_metrics() {
+    let points = vec![
+        TrendPoint { timestamp: 1000, price: 100.0 },
+        TrendPoint { timestamp: 2000, price: 120.0 },
+        TrendPoint { timestamp: 3000, price: 90.0 },
+        TrendPoint { timestamp: 4000, price: 110.0 },
+    ];
+
+    let state = fintop::app::TrendState {
+        symbol: "TEST".to_string(),
+        name: "Test Stock".to_string(),
+        currency: "USD".to_string(),
+        current_price: 110.0,
+        change: 5.0,
+        change_percent: 4.76,
+        time_range: TimeRange::OneMonth,
+        points,
+        is_loading: false,
+        error: None,
+    };
+
+    assert_eq!(state.period_open(), Some(100.0));
+    assert_eq!(state.period_close(), Some(110.0));
+    assert_eq!(state.period_min(), Some(90.0));
+    assert_eq!(state.period_max(), Some(120.0));
+
+    let (diff, pct) = state.period_change();
+    assert_eq!(diff, 10.0);
+    assert_eq!(pct, 10.0); // (110 - 100) / 100 * 100 = 10%
 }

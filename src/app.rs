@@ -1,6 +1,6 @@
 use crate::filter::{matches_index, matches_stock};
 use crate::model::{
-    ConstituentStock, MarketIndex, SortColumn, SortDirection,
+    ConstituentStock, MarketIndex, SortColumn, SortDirection, TimeRange, TrendPoint,
 };
 use crate::provider::dataset::get_default_indices;
 use crate::provider::yahoo::QuoteUpdate;
@@ -24,6 +24,57 @@ pub struct CachedConstituents {
     pub stocks: Vec<ConstituentStock>,
 }
 
+#[derive(Debug, Clone)]
+pub struct TrendState {
+    pub symbol: String,
+    pub name: String,
+    pub currency: String,
+    pub current_price: f64,
+    pub change: f64,
+    pub change_percent: f64,
+    pub time_range: TimeRange,
+    pub points: Vec<TrendPoint>,
+    pub is_loading: bool,
+    pub error: Option<String>,
+}
+
+impl TrendState {
+    pub fn period_open(&self) -> Option<f64> {
+        self.points.first().map(|p| p.price)
+    }
+
+    pub fn period_close(&self) -> Option<f64> {
+        self.points.last().map(|p| p.price).or(Some(self.current_price))
+    }
+
+    pub fn period_min(&self) -> Option<f64> {
+        self.points
+            .iter()
+            .map(|p| p.price)
+            .reduce(f64::min)
+            .or(Some(self.current_price))
+    }
+
+    pub fn period_max(&self) -> Option<f64> {
+        self.points
+            .iter()
+            .map(|p| p.price)
+            .reduce(f64::max)
+            .or(Some(self.current_price))
+    }
+
+    pub fn period_change(&self) -> (f64, f64) {
+        if let (Some(open), Some(close)) = (self.period_open(), self.period_close()) {
+            if open > 0.0 {
+                let diff = close - open;
+                let pct = (diff / open) * 100.0;
+                return (diff, pct);
+            }
+        }
+        (self.change, self.change_percent)
+    }
+}
+
 pub struct App {
     pub view_mode: ViewMode,
     pub indices: Vec<MarketIndex>,
@@ -43,6 +94,7 @@ pub struct App {
     pub tx_worker: Sender<WorkerCommand>,
     pub rx_worker: Receiver<WorkerEvent>,
     pub stock_cache: HashMap<String, CachedConstituents>,
+    pub trend_state: Option<TrendState>,
 }
 
 impl App {
@@ -81,6 +133,7 @@ impl App {
             tx_worker,
             rx_worker,
             stock_cache: HashMap::new(),
+            trend_state: None,
         }
     }
 
@@ -95,6 +148,18 @@ impl App {
                 }
                 WorkerEvent::StocksUpdated { index_id, quotes } => {
                     self.apply_stocks_quotes(&index_id, quotes);
+                }
+                WorkerEvent::TrendDataReceived {
+                    symbol,
+                    range,
+                    points,
+                } => {
+                    if let Some(ref mut trend) = self.trend_state {
+                        if trend.symbol == symbol && trend.time_range == range {
+                            trend.points = points;
+                            trend.is_loading = false;
+                        }
+                    }
                 }
                 WorkerEvent::FetchStatus {
                     is_live,
@@ -335,6 +400,85 @@ impl App {
             list
         } else {
             Vec::new()
+        }
+    }
+
+    pub fn open_trend_window(&mut self) {
+        if let ViewMode::Constituents { .. } = self.view_mode {
+            let sorted = self.sorted_constituents();
+            let selected_pos = self.stocks_table_state.selected().unwrap_or(0);
+            if let Some(stock) = sorted.get(selected_pos) {
+                let symbol = stock.symbol.clone();
+                let current_price = stock.current_price;
+                let default_range = TimeRange::OneMonth;
+
+                self.trend_state = Some(TrendState {
+                    symbol: symbol.clone(),
+                    name: stock.name.clone(),
+                    currency: stock.currency.clone(),
+                    current_price,
+                    change: stock.change,
+                    change_percent: stock.change_percent,
+                    time_range: default_range,
+                    points: Vec::new(),
+                    is_loading: true,
+                    error: None,
+                });
+
+                let _ = self.tx_worker.try_send(WorkerCommand::FetchTrend {
+                    symbol,
+                    range: default_range,
+                    current_price,
+                });
+            }
+        }
+    }
+
+    pub fn close_trend_window(&mut self) {
+        self.trend_state = None;
+    }
+
+    pub fn set_trend_range(&mut self, range: TimeRange) {
+        if let Some(ref mut trend) = self.trend_state {
+            if trend.time_range != range {
+                trend.time_range = range;
+                trend.is_loading = true;
+                let symbol = trend.symbol.clone();
+                let current_price = trend.current_price;
+                let _ = self.tx_worker.try_send(WorkerCommand::FetchTrend {
+                    symbol,
+                    range,
+                    current_price,
+                });
+            }
+        }
+    }
+
+    pub fn cycle_trend_range(&mut self) {
+        if let Some(ref trend) = self.trend_state {
+            let next_range = trend.time_range.next();
+            self.set_trend_range(next_range);
+        }
+    }
+
+    pub fn prev_trend_range(&mut self) {
+        if let Some(ref trend) = self.trend_state {
+            let prev_range = trend.time_range.prev();
+            self.set_trend_range(prev_range);
+        }
+    }
+
+    pub fn refresh_trend(&mut self) {
+        if let Some(ref mut trend) = self.trend_state {
+            trend.is_loading = true;
+            let symbol = trend.symbol.clone();
+            let range = trend.time_range;
+            let current_price = trend.current_price;
+            let _ = self.tx_worker.try_send(WorkerCommand::FetchTrend {
+                symbol,
+                range,
+                current_price,
+            });
         }
     }
 }

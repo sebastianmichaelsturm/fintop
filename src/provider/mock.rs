@@ -1,4 +1,4 @@
-use crate::model::{ConstituentStock, MarketIndex};
+use crate::model::{ConstituentStock, MarketIndex, TimeRange, TrendPoint};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct MockMarketEngine {
@@ -61,6 +61,44 @@ impl MockMarketEngine {
         if stock.shares_outstanding > 0 {
             stock.market_cap = (stock.current_price * stock.shares_outstanding as f64).round() as u64;
         }
+    }
+
+    pub fn generate_trend(&mut self, current_price: f64, range: TimeRange) -> Vec<TrendPoint> {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_secs() as i64)
+            .unwrap_or(1700000000);
+
+        let (num_points, step_secs, vol) = match range {
+            TimeRange::OneDay => (78, 300, 0.002),
+            TimeRange::FiveDays => (100, 900, 0.004),
+            TimeRange::OneMonth => (30, 86400, 0.012),
+            TimeRange::SixMonths => (120, 86400, 0.015),
+            TimeRange::OneYear => (150, 86400, 0.018),
+            TimeRange::FiveYears => (200, 7 * 86400, 0.025),
+        };
+
+        let mut points = Vec::with_capacity(num_points);
+        let mut price = current_price.max(1.0);
+        let mut ts = now;
+
+        points.push(TrendPoint {
+            timestamp: ts,
+            price: (price * 100.0).round() / 100.0,
+        });
+
+        for _ in 1..num_points {
+            ts -= step_secs;
+            let drift = (self.next_rand() - 0.495) * vol;
+            price = (price * (1.0 - drift)).max(0.1);
+            points.push(TrendPoint {
+                timestamp: ts,
+                price: (price * 100.0).round() / 100.0,
+            });
+        }
+
+        points.reverse();
+        points
     }
 }
 
