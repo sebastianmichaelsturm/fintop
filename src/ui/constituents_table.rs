@@ -1,5 +1,5 @@
 use crate::app::App;
-use crate::model::{format_price, format_volume, SortColumn};
+use crate::model::{format_market_cap, format_price, format_volume, SortColumn};
 use ratatui::{
     layout::{Constraint, Rect},
     style::{Color, Modifier, Style},
@@ -24,6 +24,13 @@ pub fn render_constituents_table(frame: &mut Frame, app: &mut App, area: Rect) {
         "Company Name".to_string()
     };
     let name_style = if app.sort_column_stocks == SortColumn::Name { active_style } else { default_style };
+
+    let mcap_label = if app.sort_column_stocks == SortColumn::MarketCap {
+        format!("Market Cap {}", app.sort_direction_stocks.indicator())
+    } else {
+        "Market Cap".to_string()
+    };
+    let mcap_style = if app.sort_column_stocks == SortColumn::MarketCap { active_style } else { default_style };
 
     let price_label = if app.sort_column_stocks == SortColumn::Price {
         format!("Price {}", app.sort_direction_stocks.indicator())
@@ -56,6 +63,7 @@ pub fn render_constituents_table(frame: &mut Frame, app: &mut App, area: Rect) {
     let header_cells = vec![
         Cell::from(symbol_label).style(symbol_style),
         Cell::from(name_label).style(name_style),
+        Cell::from(mcap_label).style(mcap_style),
         Cell::from(price_label).style(price_style),
         Cell::from(change_label).style(change_style),
         Cell::from(pct_label).style(pct_style),
@@ -81,6 +89,8 @@ pub fn render_constituents_table(frame: &mut Frame, app: &mut App, area: Rect) {
             let cells = vec![
                 Cell::from(stock.symbol.clone()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
                 Cell::from(stock.name.clone()),
+                Cell::from(format_market_cap(stock.market_cap, &stock.currency))
+                    .style(Style::default().fg(Color::LightGreen).add_modifier(Modifier::BOLD)),
                 Cell::from(format_price(stock.current_price, &stock.currency)).style(Style::default().fg(Color::Yellow)),
                 Cell::from(format!("{}{:.2}", change_prefix, stock.change)).style(Style::default().fg(change_color)),
                 Cell::from(format!("{}{:.2}%", change_prefix, stock.change_percent)).style(Style::default().fg(change_color).add_modifier(Modifier::BOLD)),
@@ -95,14 +105,15 @@ pub fn render_constituents_table(frame: &mut Frame, app: &mut App, area: Rect) {
     let table = Table::new(
         rows,
         [
-            Constraint::Percentage(12),
-            Constraint::Percentage(26),
-            Constraint::Percentage(14),
-            Constraint::Percentage(10),
-            Constraint::Percentage(10),
-            Constraint::Percentage(10),
-            Constraint::Percentage(10),
-            Constraint::Percentage(8),
+            Constraint::Percentage(10), // Symbol
+            Constraint::Percentage(22), // Company Name
+            Constraint::Percentage(12), // Market Cap
+            Constraint::Percentage(12), // Price
+            Constraint::Percentage(10), // Change
+            Constraint::Percentage(10), // Change %
+            Constraint::Percentage(9),  // Day High
+            Constraint::Percentage(9),  // Day Low
+            Constraint::Percentage(8),  // Volume
         ],
     )
     .header(header)

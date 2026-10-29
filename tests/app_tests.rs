@@ -25,7 +25,7 @@ fn test_indices_default_region_sorting() {
 }
 
 #[test]
-fn test_constituents_default_highest_price_sorting() {
+fn test_constituents_default_market_cap_sorting() {
     let (tx_cmd, _rx_cmd) = mpsc::channel(32);
     let (_tx_evt, rx_evt) = mpsc::channel(64);
     let mut app = App::new(tx_cmd, rx_evt, true);
@@ -36,17 +36,37 @@ fn test_constituents_default_highest_price_sorting() {
     let stocks = app.sorted_constituents();
     assert!(!stocks.is_empty());
 
-    // Assert highest price on top (descending order)
+    // Assert highest market cap on top (descending order)
     for i in 0..stocks.len() - 1 {
         assert!(
-            stocks[i].current_price >= stocks[i + 1].current_price,
-            "Stock {} ({}) is lower price than next {} ({})",
+            stocks[i].market_cap >= stocks[i + 1].market_cap,
+            "Stock {} ({}) has lower market cap than next {} ({})",
             stocks[i].symbol,
-            stocks[i].current_price,
+            stocks[i].market_cap,
             stocks[i + 1].symbol,
-            stocks[i + 1].current_price
+            stocks[i + 1].market_cap
         );
     }
+}
+
+#[test]
+fn test_clean_symbol_no_caret() {
+    let indices = get_default_indices();
+    for idx in &indices {
+        let clean = idx.clean_symbol();
+        assert!(!clean.starts_with('^'), "Symbol '{}' should not start with '^'", clean);
+        assert!(!clean.is_empty(), "Clean symbol for {} should not be empty", idx.name);
+    }
+
+    // Specific ticker checks
+    let sp500 = indices.iter().find(|i| i.id == "sp500").unwrap();
+    assert_eq!(sp500.clean_symbol(), "SPX");
+
+    let dax = indices.iter().find(|i| i.id == "dax40").unwrap();
+    assert_eq!(dax.clean_symbol(), "DAX");
+
+    let dji = indices.iter().find(|i| i.id == "dowjones").unwrap();
+    assert_eq!(dji.clean_symbol(), "DJI");
 }
 
 #[test]

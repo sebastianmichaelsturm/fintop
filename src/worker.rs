@@ -181,6 +181,7 @@ impl MarketWorker {
             day_high: 155.0,
             day_low: 145.0,
             volume: 1_000_000,
+            market_cap: 100_000_000_000,
         };
         self.mock_engine.tick_stock(&mut dummy);
         QuoteUpdate {

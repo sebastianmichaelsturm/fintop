@@ -1,5 +1,3 @@
-use ratatui::style::Color;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Region {
     UnitedStates = 0,
@@ -30,12 +28,14 @@ pub struct ConstituentStock {
     pub day_high: f64,
     pub day_low: f64,
     pub volume: u64,
+    pub market_cap: u64,
 }
 
 #[derive(Debug, Clone)]
 pub struct MarketIndex {
     pub id: String,
-    pub symbol: String,
+    pub symbol: String,          // API ticker symbol (e.g. "^GSPC")
+    pub display_symbol: String,  // Clean UI display symbol (e.g. "SPX" / "DAX")
     pub name: String,
     pub region: Region,
     pub currency: String,
@@ -48,9 +48,20 @@ pub struct MarketIndex {
     pub constituents: Vec<ConstituentStock>,
 }
 
+impl MarketIndex {
+    pub fn clean_symbol(&self) -> &str {
+        if !self.display_symbol.is_empty() {
+            &self.display_symbol
+        } else {
+            self.symbol.strip_prefix('^').unwrap_or(&self.symbol)
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SortColumn {
     DefaultRegion,
+    MarketCap,
     Price,
     ChangePercent,
     ChangeAbsolute,
@@ -63,6 +74,7 @@ impl SortColumn {
     pub fn as_str(&self) -> &'static str {
         match self {
             SortColumn::DefaultRegion => "Region Hierarchy",
+            SortColumn::MarketCap => "Market Cap",
             SortColumn::Price => "Price",
             SortColumn::ChangePercent => "Change %",
             SortColumn::ChangeAbsolute => "Change Abs",
@@ -85,12 +97,13 @@ impl SortColumn {
 
     pub fn next_for_stocks(&self) -> Self {
         match self {
+            SortColumn::MarketCap => SortColumn::Price,
             SortColumn::Price => SortColumn::ChangePercent,
             SortColumn::ChangePercent => SortColumn::Name,
             SortColumn::Name => SortColumn::Symbol,
             SortColumn::Symbol => SortColumn::Volume,
-            SortColumn::Volume => SortColumn::Price,
-            _ => SortColumn::Price,
+            SortColumn::Volume => SortColumn::MarketCap,
+            _ => SortColumn::MarketCap,
         }
     }
 }
@@ -171,13 +184,18 @@ fn format_with_commas(val: f64) -> String {
     }
 }
 
-pub fn format_change_values(change: f64, pct: f64) -> (String, Color) {
-    if change > 0.0001 {
-        (format!("+{:.2} (+{:.2}%)", change, pct), Color::Green)
-    } else if change < -0.0001 {
-        (format!("{:.2} ({:.2}%)", change, pct), Color::Red)
+pub fn format_market_cap(market_cap: u64, currency: &str) -> String {
+    let sym = currency_symbol(currency);
+    if market_cap >= 1_000_000_000_000 {
+        format!("{}{:.2}T", sym, market_cap as f64 / 1_000_000_000_000.0)
+    } else if market_cap >= 1_000_000_000 {
+        format!("{}{:.1}B", sym, market_cap as f64 / 1_000_000_000.0)
+    } else if market_cap >= 1_000_000 {
+        format!("{}{:.0}M", sym, market_cap as f64 / 1_000_000.0)
+    } else if market_cap > 0 {
+        format!("{}{}", sym, market_cap)
     } else {
-        ("0.00 (0.00%)".to_string(), Color::DarkGray)
+        "-".to_string()
     }
 }
 

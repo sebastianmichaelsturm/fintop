@@ -49,7 +49,7 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
             if let Some(idx) = app.active_index() {
                 title_spans.push(Span::raw(" — "));
                 title_spans.push(Span::styled(
-                    format!("Index: {} ({})", idx.name, idx.symbol),
+                    format!("Index: {} ({})", idx.name, idx.clean_symbol()),
                     Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
                 ));
                 title_spans.push(Span::raw(format!(

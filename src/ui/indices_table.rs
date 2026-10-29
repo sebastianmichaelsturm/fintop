@@ -88,7 +88,7 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
             };
 
             let cells = vec![
-                Cell::from(idx.symbol.clone()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                Cell::from(idx.clean_symbol().to_string()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
                 Cell::from(idx.name.clone()),
                 Cell::from(idx.region.as_str()).style(Style::default().fg(Color::LightBlue)),
                 Cell::from(format_price(idx.current_price, &idx.currency)).style(Style::default().fg(Color::Yellow)),

@@ -65,8 +65,8 @@ impl App {
             stocks_table_state,
             sort_column_indices: SortColumn::DefaultRegion,
             sort_direction_indices: SortDirection::Ascending,
-            sort_column_stocks: SortColumn::Price,
-            sort_direction_stocks: SortDirection::Descending, // Highest price on top by default
+            sort_column_stocks: SortColumn::MarketCap,
+            sort_direction_stocks: SortDirection::Descending, // Highest market cap on top by default
             filter_query: String::new(),
             is_filtering: false,
             is_paused: false,
@@ -165,9 +165,9 @@ impl App {
                 index_id: index_id.clone(),
             };
 
-            // Reset stocks table cursor to 0 (top / highest price)
+            // Reset stocks table cursor to 0 (top / highest market cap)
             self.stocks_table_state.select(Some(0));
-            self.sort_column_stocks = SortColumn::Price;
+            self.sort_column_stocks = SortColumn::MarketCap;
             self.sort_direction_stocks = SortDirection::Descending;
             self.filter_query.clear();
             self.is_filtering = false;
@@ -312,13 +312,14 @@ impl App {
 
             list.sort_by(|a, b| {
                 let ordering = match self.sort_column_stocks {
+                    SortColumn::MarketCap => a.market_cap.cmp(&b.market_cap),
                     SortColumn::Price => a.current_price.total_cmp(&b.current_price),
                     SortColumn::ChangePercent => a.change_percent.total_cmp(&b.change_percent),
                     SortColumn::ChangeAbsolute => a.change.total_cmp(&b.change),
                     SortColumn::Name => a.name.cmp(&b.name),
                     SortColumn::Symbol => a.symbol.cmp(&b.symbol),
                     SortColumn::Volume => a.volume.cmp(&b.volume),
-                    _ => a.current_price.total_cmp(&b.current_price),
+                    _ => a.market_cap.cmp(&b.market_cap),
                 };
 
                 if self.sort_direction_stocks == SortDirection::Descending {
