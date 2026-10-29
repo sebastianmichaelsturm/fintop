@@ -125,6 +125,10 @@ fn test_constituent_roster_counts() {
     let stoxx50 = indices.iter().find(|i| i.id == "stoxx50").unwrap();
     assert_eq!(stoxx50.constituents.len(), 50, "Euro Stoxx 50 must have exactly 50 constituents");
 
+    let stoxx600 = indices.iter().find(|i| i.id == "stoxx600").unwrap();
+    assert_eq!(stoxx600.constituents.len(), 50, "Euro Stoxx 600 must have constituents populated");
+    assert_eq!(stoxx600.clean_symbol(), "SXXP");
+
     let nasdaq = indices.iter().find(|i| i.id == "nasdaq100").unwrap();
     assert_eq!(nasdaq.constituents.len(), 50, "Nasdaq sample constituents must be populated");
 }
