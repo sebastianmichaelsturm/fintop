@@ -241,7 +241,6 @@ fn test_trend_state_period_metrics() {
         points,
         is_loading: false,
         error: None,
-        cursor_index: 0,
         window_offset_secs: 0,
     };
 
@@ -256,7 +255,7 @@ fn test_trend_state_period_metrics() {
 }
 
 #[test]
-fn test_cursor_navigation_and_window_scroll() {
+fn test_window_shift_navigation() {
     use fintop::worker::WorkerCommand;
 
     let (tx_cmd, mut rx_cmd) = mpsc::channel(32);
@@ -266,47 +265,38 @@ fn test_cursor_navigation_and_window_scroll() {
     app.enter_index();
     app.open_trend_window();
 
-    // Drain prior worker commands (e.g. PollConstituents and initial FetchTrend)
+    // Drain prior worker commands
     while rx_cmd.try_recv().is_ok() {}
 
     let trend = app.trend_state.as_mut().unwrap();
-    trend.time_range = TimeRange::OneDay; // 1D resolution: cursor_step is 12 (1 hour)
-    trend.points = (0..50)
-        .map(|i| TrendPoint {
-            timestamp: 1000 + i * 300,
-            price: 100.0 + i as f64,
-        })
-        .collect();
-    trend.cursor_index = 48; // near right edge
+    trend.time_range = TimeRange::OneDay; // 1D resolution: window_shift_secs is 3600 (1 hour)
+    assert_eq!(trend.window_offset_secs, 0);
 
-    // Step left coarse (h): jumps by 12 points (1 hour)
-    app.cursor_left(true);
-    assert_eq!(app.trend_state.as_ref().unwrap().cursor_index, 36);
+    // Shift window backward into past: should shift by -3600s
+    app.shift_window_backward();
+    assert_eq!(app.trend_state.as_ref().unwrap().window_offset_secs, -3600);
 
-    // Step right coarse (l): jumps by 12 points (1 hour)
-    app.cursor_right(true);
-    assert_eq!(app.trend_state.as_ref().unwrap().cursor_index, 48);
-
-    // Step fine right (→): jumps by 1 point to max (49)
-    app.cursor_right(false);
-    assert_eq!(app.trend_state.as_ref().unwrap().cursor_index, 49);
-
-    // Jump home (0)
-    app.cursor_home();
-    assert_eq!(app.trend_state.as_ref().unwrap().cursor_index, 0);
-
-    // Step left at index 0 triggers window scroll into past!
-    app.cursor_left(true);
-    assert!(app.trend_state.as_ref().unwrap().window_offset_secs < 0);
-    // Worker command was dispatched for new offset
     if let Ok(cmd) = rx_cmd.try_recv() {
         match cmd {
-            WorkerCommand::FetchTrend { offset_secs, .. } => {
-                assert!(offset_secs < 0);
+            WorkerCommand::FetchTrend { offset_secs, range, .. } => {
+                assert_eq!(offset_secs, -3600);
+                assert_eq!(range, TimeRange::OneDay);
             }
-            _ => panic!("Expected FetchTrend command with negative offset"),
+            _ => panic!("Expected FetchTrend command with -3600 offset"),
         }
     }
+
+    // Shift backward again: should be -7200s (2 hours)
+    app.shift_window_backward();
+    assert_eq!(app.trend_state.as_ref().unwrap().window_offset_secs, -7200);
+
+    // Shift forward: should return to -3600s
+    app.shift_window_forward();
+    assert_eq!(app.trend_state.as_ref().unwrap().window_offset_secs, -3600);
+
+    // Reset offset: resets to 0 (latest live window)
+    app.reset_window_offset();
+    assert_eq!(app.trend_state.as_ref().unwrap().window_offset_secs, 0);
 }
 
 #[test]

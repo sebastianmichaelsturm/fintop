@@ -43,7 +43,7 @@ pub fn render_trend_modal(frame: &mut Frame, trend: &TrendState, area: Rect) {
             format!("-{}h", hours_ago)
         };
         title_spans.push(Span::styled(
-            format!(" [Historical: {} in past]", time_str),
+            format!(" [Shifted: {} in past]", time_str),
             Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD),
         ));
     }
@@ -64,7 +64,7 @@ pub fn render_trend_modal(frame: &mut Frame, trend: &TrendState, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(5), // Metrics, Cursor & Timeframe buttons
+            Constraint::Length(5), // Metrics & Time Window info
             Constraint::Min(8),    // Braille Chart
             Constraint::Length(1), // Shortcut help
         ])
@@ -136,39 +136,30 @@ fn render_modal_header(
         ),
     ]));
 
-    // Line 3: Cursor Inspection Info
-    if let Some(point) = trend.selected_point() {
-        let time_str = format_point_detail_time(point.timestamp, trend.time_range);
-        let price_str = format_price(point.price, &trend.currency);
-        let (d_abs, d_pct) = trend.selected_diff().unwrap_or((0.0, 0.0));
-        let d_pos = d_abs >= 0.0;
-        let d_col = if d_pos { Color::Green } else { Color::Red };
-        let d_prefix = if d_pos { "+" } else { "" };
+    // Line 3: Time Window Position & Step Size
+    let step_lbl = trend.time_range.step_label();
+    let mut window_spans = vec![
+        Span::styled(" Time Window: ", Style::default().fg(Color::Cyan).bold()),
+    ];
 
-        let mut cursor_spans = vec![
-            Span::styled(" Cursor: ", Style::default().fg(Color::Cyan).bold()),
-            Span::styled(format!("[{}] ", time_str), Style::default().fg(Color::Yellow).bold()),
-            Span::styled("Price: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(format!("{} ", price_str), Style::default().fg(Color::White).bold()),
-            Span::styled("Δ vs Open: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(
-                format!("{}{:.2} ({}{:.2}%) ", d_prefix, d_abs, d_prefix, d_pct),
-                Style::default().fg(d_col).bold(),
-            ),
-            Span::styled(
-                format!("(Step: {})", trend.time_range.step_label()),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ];
-
-        if trend.window_offset_secs < 0 {
-            cursor_spans.push(Span::styled(" [End/0: Reset to Latest]", Style::default().fg(Color::Magenta)));
-        }
-
-        lines.push(Line::from(cursor_spans));
+    if trend.window_offset_secs == 0 {
+        window_spans.push(Span::styled("[Latest / Realtime] ", Style::default().fg(Color::Green).bold()));
     } else {
-        lines.push(Line::from(vec![Span::raw("")]));
+        let days_ago = (-trend.window_offset_secs) / 86400;
+        let hours_ago = (-trend.window_offset_secs) / 3600;
+        let time_str = if days_ago >= 1 {
+            format!("-{}d in past", days_ago)
+        } else {
+            format!("-{}h in past", hours_ago)
+        };
+        window_spans.push(Span::styled(format!("[{}] ", time_str), Style::default().fg(Color::Magenta).bold()));
+        window_spans.push(Span::styled("[0/End: Reset to Latest] ", Style::default().fg(Color::Yellow)));
     }
+
+    window_spans.push(Span::styled("Shift Step: ", Style::default().fg(Color::DarkGray)));
+    window_spans.push(Span::styled(format!("{} (h/l or ←/→)", step_lbl), Style::default().fg(Color::Yellow).bold()));
+
+    lines.push(Line::from(window_spans));
 
     // Line 4: Timeframe Buttons
     let mut tf_spans = vec![Span::styled(" Timeframe: ", Style::default().fg(Color::DarkGray))];
@@ -259,37 +250,12 @@ fn render_modal_chart(
         Span::raw(format_price(max_p, &trend.currency)),
     ];
 
-    let main_dataset = Dataset::default()
+    let dataset = Dataset::default()
         .name(format!("{} Trend", trend.time_range.as_str()))
         .marker(Marker::Braille)
         .graph_type(GraphType::Line)
         .style(Style::default().fg(line_color))
         .data(&data_coords);
-
-    let mut datasets = vec![main_dataset];
-
-    // Add cursor crosshair line & dot
-    let cur_idx = trend.cursor_index.min(trend.points.len().saturating_sub(1));
-    let cur_x = cur_idx as f64;
-    let cur_y = trend.points.get(cur_idx).map(|p| p.price).unwrap_or(0.0);
-
-    let cursor_line_coords = vec![(cur_x, y_bounds[0]), (cur_x, y_bounds[1])];
-    let cursor_line_dataset = Dataset::default()
-        .name("Cursor")
-        .marker(Marker::Braille)
-        .graph_type(GraphType::Line)
-        .style(Style::default().fg(Color::DarkGray))
-        .data(&cursor_line_coords);
-    datasets.push(cursor_line_dataset);
-
-    let cursor_dot_coords = vec![(cur_x, cur_y)];
-    let cursor_dot_dataset = Dataset::default()
-        .name("Target")
-        .marker(Marker::Block)
-        .graph_type(GraphType::Scatter)
-        .style(Style::default().fg(Color::Yellow).bold())
-        .data(&cursor_dot_coords);
-    datasets.push(cursor_dot_dataset);
 
     let x_axis = Axis::default()
         .title(Span::styled("Timeline", Style::default().fg(Color::DarkGray)))
@@ -306,7 +272,7 @@ fn render_modal_chart(
         .bounds(y_bounds)
         .labels(y_labels);
 
-    let chart = Chart::new(datasets)
+    let chart = Chart::new(vec![dataset])
         .x_axis(x_axis)
         .y_axis(y_axis);
 
@@ -316,12 +282,12 @@ fn render_modal_chart(
 fn render_modal_footer(frame: &mut Frame, trend: &TrendState, area: Rect) {
     let step_lbl = trend.time_range.step_label();
     let shortcuts = Line::from(vec![
-        Span::styled(" [h/l] ", Style::default().fg(Color::Yellow).bold()),
-        Span::styled(format!("Step {}  ", step_lbl), Style::default().fg(Color::White)),
-        Span::styled("[←/→] ", Style::default().fg(Color::Yellow).bold()),
-        Span::styled("Step 1pt  ", Style::default().fg(Color::White)),
+        Span::styled(" [h/←] ", Style::default().fg(Color::Yellow).bold()),
+        Span::styled(format!("Shift -{} (Past)  ", step_lbl), Style::default().fg(Color::White)),
+        Span::styled("[l/→] ", Style::default().fg(Color::Yellow).bold()),
+        Span::styled(format!("Shift +{} (Future)  ", step_lbl), Style::default().fg(Color::White)),
         Span::styled("[0/End] ", Style::default().fg(Color::Yellow).bold()),
-        Span::styled("Edges/Reset  ", Style::default().fg(Color::White)),
+        Span::styled("Latest  ", Style::default().fg(Color::White)),
         Span::styled("[t/Tab] ", Style::default().fg(Color::Yellow).bold()),
         Span::styled("Range  ", Style::default().fg(Color::White)),
         Span::styled("[1-6] ", Style::default().fg(Color::Yellow).bold()),
@@ -347,22 +313,6 @@ fn format_point_time(ts: i64, range: TimeRange) -> String {
             TimeRange::OneMonth | TimeRange::SixMonths => local.format("%d %b").to_string(),
             TimeRange::OneYear => local.format("%b %Y").to_string(),
             TimeRange::FiveYears => local.format("%Y").to_string(),
-        }
-    } else {
-        String::new()
-    }
-}
-
-fn format_point_detail_time(ts: i64, range: TimeRange) -> String {
-    let dt = chrono::DateTime::from_timestamp(ts, 0)
-        .map(|utc| utc.with_timezone(&Local));
-
-    if let Some(local) = dt {
-        match range {
-            TimeRange::OneDay => local.format("%H:%M").to_string(),
-            TimeRange::FiveDays => local.format("%a %d %b %H:%M").to_string(),
-            TimeRange::OneMonth | TimeRange::SixMonths => local.format("%a %d %b %Y").to_string(),
-            TimeRange::OneYear | TimeRange::FiveYears => local.format("%d %b %Y").to_string(),
         }
     } else {
         String::new()
