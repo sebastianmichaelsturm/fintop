@@ -179,6 +179,13 @@ impl SortColumn {
         }
     }
 
+    pub fn as_str_for_indices(&self) -> &'static str {
+        match self {
+            SortColumn::Price => "Points",
+            _ => self.as_str(),
+        }
+    }
+
     pub fn next_for_indices(&self) -> Self {
         match self {
             SortColumn::DefaultRegion => SortColumn::ChangePercent,
@@ -255,6 +262,10 @@ pub fn format_price(price: f64, currency: &str) -> String {
         let formatted = format_with_commas(price);
         format!("{}{}", sym, formatted)
     }
+}
+
+pub fn format_points(points: f64) -> String {
+    format_with_commas(points)
 }
 
 fn format_with_commas(val: f64) -> String {

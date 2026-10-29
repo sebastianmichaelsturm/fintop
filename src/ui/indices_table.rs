@@ -1,5 +1,5 @@
 use crate::app::App;
-use crate::model::{format_price, SortColumn};
+use crate::model::{format_points, SortColumn};
 use ratatui::{
     layout::{Constraint, Rect},
     style::{Color, Modifier, Style},
@@ -32,12 +32,12 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
     };
     let region_style = if app.sort_column_indices == SortColumn::DefaultRegion { active_style } else { default_style };
 
-    let price_label = if app.sort_column_indices == SortColumn::Price {
-        format!("Level / Price {}", app.sort_direction_indices.indicator())
+    let points_label = if app.sort_column_indices == SortColumn::Price {
+        format!("Points {}", app.sort_direction_indices.indicator())
     } else {
-        "Level / Price".to_string()
+        "Points".to_string()
     };
-    let price_style = if app.sort_column_indices == SortColumn::Price { active_style } else { default_style };
+    let points_style = if app.sort_column_indices == SortColumn::Price { active_style } else { default_style };
 
     let change_label = if app.sort_column_indices == SortColumn::ChangeAbsolute {
         format!("Change {}", app.sort_direction_indices.indicator())
@@ -57,7 +57,7 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
         Cell::from(symbol_label).style(symbol_style),
         Cell::from(name_label).style(name_style),
         Cell::from(region_label).style(region_style),
-        Cell::from(price_label).style(price_style),
+        Cell::from(points_label).style(points_style),
         Cell::from(change_label).style(change_style),
         Cell::from(pct_label).style(pct_style),
         Cell::from("Day Range (Low - High)").style(default_style),
@@ -80,8 +80,8 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
             let range_str = if idx.day_low > 0.0 && idx.day_high > 0.0 {
                 format!(
                     "{} - {}",
-                    format_price(idx.day_low, &idx.currency),
-                    format_price(idx.day_high, &idx.currency)
+                    format_points(idx.day_low),
+                    format_points(idx.day_high)
                 )
             } else {
                 "-".to_string()
@@ -91,7 +91,7 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
                 Cell::from(idx.clean_symbol().to_string()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
                 Cell::from(idx.name.clone()),
                 Cell::from(idx.region.as_str()).style(Style::default().fg(Color::LightBlue)),
-                Cell::from(format_price(idx.current_price, &idx.currency)).style(Style::default().fg(Color::Yellow)),
+                Cell::from(format_points(idx.current_price)).style(Style::default().fg(Color::Yellow)),
                 Cell::from(format!("{}{:.2}", change_prefix, idx.change)).style(Style::default().fg(change_color)),
                 Cell::from(format!("{}{:.2}%", change_prefix, idx.change_percent)).style(Style::default().fg(change_color).add_modifier(Modifier::BOLD)),
                 Cell::from(range_str).style(Style::default().fg(Color::DarkGray)),

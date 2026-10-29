@@ -53,7 +53,7 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
                     Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
                 ));
                 title_spans.push(Span::raw(format!(
-                    " — {} Constituents [Currency: {}]",
+                    " — {} Constituents [Stock Currency: {}]",
                     idx.constituents.len(),
                     idx.currency
                 )));
@@ -64,7 +64,7 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
     let active_sort_str = match app.view_mode {
         ViewMode::Indices => format!(
             "{} {}",
-            app.sort_column_indices.as_str(),
+            app.sort_column_indices.as_str_for_indices(),
             app.sort_direction_indices.indicator()
         ),
         ViewMode::Constituents { .. } => format!(

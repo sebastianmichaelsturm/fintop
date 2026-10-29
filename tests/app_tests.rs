@@ -252,3 +252,28 @@ fn test_trend_state_period_metrics() {
     assert_eq!(diff, 10.0);
     assert_eq!(pct, 10.0); // (110 - 100) / 100 * 100 = 10%
 }
+
+#[test]
+fn test_index_points_formatting() {
+    use fintop::model::format_points;
+
+    assert_eq!(format_points(5808.12), "5,808.12");
+    assert_eq!(format_points(19450.30), "19,450.30");
+    assert_eq!(format_points(42141.54), "42,141.54");
+    assert_eq!(format_points(38981.75), "38,981.75");
+    assert_eq!(format_points(0.0), "0.00");
+    assert_eq!(format_points(825.40), "825.40");
+
+    // Must not contain any currency symbols
+    for val in [5808.12, 19450.30, 42141.54] {
+        let formatted = format_points(val);
+        assert!(!formatted.contains('$'));
+        assert!(!formatted.contains('€'));
+        assert!(!formatted.contains('£'));
+        assert!(!formatted.contains('¥'));
+    }
+
+    // Sort column naming for indices
+    assert_eq!(SortColumn::Price.as_str_for_indices(), "Points");
+    assert_eq!(SortColumn::Price.as_str(), "Price");
+}
