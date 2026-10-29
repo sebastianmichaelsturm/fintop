@@ -1,4 +1,4 @@
-# `fintop` 📈⚡
+# `fintop` 📈
 
 A high-performance, real-time terminal financial market tracker (inspired by `top`, `htop`, and peer tools [`ftop`](https://github.com/sebastianmichaelsturm/ftop)) that monitors major global indices and their constituent stocks in a modern Rust TUI.
 
@@ -80,4 +80,4 @@ fintop --interval 5
 
 ## License
 
-MIT OR Apache-2.0
+MIT
