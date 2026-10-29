@@ -29,6 +29,7 @@ pub struct ConstituentStock {
     pub day_low: f64,
     pub volume: u64,
     pub market_cap: u64,
+    pub shares_outstanding: u64,
 }
 
 #[derive(Debug, Clone)]

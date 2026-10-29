@@ -13,6 +13,11 @@ fn stock(
     vol: u64,
     market_cap: u64,
 ) -> ConstituentStock {
+    let shares = if price > 0.0 {
+        ((market_cap as f64) / price).round() as u64
+    } else {
+        0
+    };
     ConstituentStock {
         symbol: symbol.to_string(),
         name: name.to_string(),
@@ -24,6 +29,7 @@ fn stock(
         day_low: lo,
         volume: vol,
         market_cap,
+        shares_outstanding: shares,
     }
 }
 
@@ -250,7 +256,7 @@ pub fn get_dax40_constituents() -> Vec<ConstituentStock> {
 pub fn get_dowjones_constituents() -> Vec<ConstituentStock> {
     vec![
         stock("AAPL", "Apple Inc", "USD", 231.40, 1.20, 0.52, 233.10, 229.80, 45200000, 3_520_000_000_000),
-        stock("NVDA", "NVIDIA Corp", "USD", 140.52, 2.80, 2.03, 142.10, 137.90, 68000000, 3_450_000_000_000),
+        stock("NVDA", "NVIDIA Corp", "USD", 215.38, -2.56, -1.17, 219.99, 214.47, 91664000, 5_200_000_000_000),
         stock("MSFT", "Microsoft Corp", "USD", 428.15, 3.40, 0.80, 431.20, 424.50, 18500000, 3_180_000_000_000),
         stock("AMZN", "Amazon.com Inc", "USD", 187.90, 1.45, 0.78, 189.50, 186.10, 32000000, 1_960_000_000_000),
         stock("WMT", "Walmart Inc", "USD", 82.40, 0.60, 0.73, 83.10, 81.60, 14200000, 665_000_000_000),
@@ -395,7 +401,7 @@ pub fn get_stoxx600_constituents() -> Vec<ConstituentStock> {
 pub fn get_nasdaq100_constituents() -> Vec<ConstituentStock> {
     vec![
         stock("AAPL", "Apple Inc", "USD", 231.40, 1.20, 0.52, 233.10, 229.80, 45200000, 3_520_000_000_000),
-        stock("NVDA", "NVIDIA Corp", "USD", 140.52, 2.80, 2.03, 142.10, 137.90, 68000000, 3_450_000_000_000),
+        stock("NVDA", "NVIDIA Corp", "USD", 215.38, -2.56, -1.17, 219.99, 214.47, 91664000, 5_200_000_000_000),
         stock("MSFT", "Microsoft Corp", "USD", 428.15, 3.40, 0.80, 431.20, 424.50, 18500000, 3_180_000_000_000),
         stock("GOOGL", "Alphabet Inc Class A", "USD", 166.20, 1.80, 1.09, 167.50, 164.10, 21000000, 2_050_000_000_000),
         stock("GOOG", "Alphabet Inc Class C", "USD", 167.50, 1.70, 1.03, 168.90, 165.20, 18500000, 2_050_000_000_000),
@@ -450,7 +456,7 @@ pub fn get_nasdaq100_constituents() -> Vec<ConstituentStock> {
 pub fn get_sp500_constituents() -> Vec<ConstituentStock> {
     vec![
         stock("AAPL", "Apple Inc", "USD", 231.40, 1.20, 0.52, 233.10, 229.80, 45200000, 3_520_000_000_000),
-        stock("NVDA", "NVIDIA Corp", "USD", 140.52, 2.80, 2.03, 142.10, 137.90, 68000000, 3_450_000_000_000),
+        stock("NVDA", "NVIDIA Corp", "USD", 215.38, -2.56, -1.17, 219.99, 214.47, 91664000, 5_200_000_000_000),
         stock("MSFT", "Microsoft Corp", "USD", 428.15, 3.40, 0.80, 431.20, 424.50, 18500000, 3_180_000_000_000),
         stock("GOOGL", "Alphabet Inc Class A", "USD", 166.20, 1.80, 1.09, 167.50, 164.10, 21000000, 2_050_000_000_000),
         stock("AMZN", "Amazon.com Inc", "USD", 187.90, 1.45, 0.78, 189.50, 186.10, 32000000, 1_960_000_000_000),

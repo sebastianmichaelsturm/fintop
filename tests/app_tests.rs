@@ -70,6 +70,16 @@ fn test_clean_symbol_no_caret() {
 }
 
 #[test]
+fn test_nvidia_market_cap_and_dynamic_update() {
+    let indices = get_default_indices();
+    let sp500 = indices.iter().find(|i| i.id == "sp500").unwrap();
+    let nvda = sp500.constituents.iter().find(|s| s.symbol == "NVDA").unwrap();
+
+    assert!(nvda.market_cap >= 5_000_000_000_000, "Nvidia market cap should be >= $5.0T, got {}", nvda.market_cap);
+    assert!(nvda.shares_outstanding > 20_000_000_000, "Nvidia shares outstanding should be > 20B");
+}
+
+#[test]
 fn test_sorting_columns_and_directions() {
     let (tx_cmd, _rx_cmd) = mpsc::channel(32);
     let (_tx_evt, rx_evt) = mpsc::channel(64);

@@ -132,6 +132,9 @@ impl App {
                     if quote.volume > 0 {
                         stock.volume = quote.volume;
                     }
+                    if stock.shares_outstanding > 0 {
+                        stock.market_cap = (stock.current_price * stock.shares_outstanding as f64).round() as u64;
+                    }
                 }
             }
             // Update cache

@@ -58,6 +58,9 @@ impl MockMarketEngine {
         }
         // Small volume increment
         stock.volume = stock.volume.saturating_add((self.next_rand() * 5000.0) as u64);
+        if stock.shares_outstanding > 0 {
+            stock.market_cap = (stock.current_price * stock.shares_outstanding as f64).round() as u64;
+        }
     }
 }
 
