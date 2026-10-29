@@ -15,7 +15,7 @@ Built with **Rust**, [`ratatui`](https://ratatui.rs/), [`crossterm`](https://cra
 - **Constituent Stocks Explorer (Detail View)**:
   - Press `[Enter]` on any index to inspect its full constituent member stocks.
   - Comprehensive rosters included for all major indices (DAX 40, Dow Jones 30, Euro Stoxx 50, CAC 40, FTSE 100, Nasdaq 100, S&P 500, Nikkei 225).
-  - **Highest Stock Price on Top by Default** (`Price ▼`), sortable by Price, Change %, Absolute Change, Name, Symbol, or Volume.
+  - **Largest Companies on Top by Default** (`Market Cap ▼`), sortable by Market Cap, Price, Change %, Absolute Change, Name, Symbol, or Volume.
 - **High-Efficiency Lazy Loading & On-Demand Data Fetching**:
   - In overview mode, only queries the ~10 major index symbols in the background every 10 seconds.
   - Constituent quotes are queried on-demand only when an index is opened, saving network bandwidth and preventing API throttling.
