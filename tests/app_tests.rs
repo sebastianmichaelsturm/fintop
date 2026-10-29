@@ -12,11 +12,20 @@ fn test_indices_default_region_sorting() {
     let app = App::new(tx_cmd, rx_evt, true);
 
     let sorted = app.sorted_indices();
-    assert!(!sorted.is_empty());
+    assert_eq!(sorted.len(), 27, "Must contain all 27 global benchmarks");
 
-    // Verify region hierarchy: US first, then Europe, then Asia
+    // Verify all 4 regions are present
+    assert!(sorted.iter().any(|i| i.region == Region::UnitedStates));
+    assert!(sorted.iter().any(|i| i.region == Region::Europe));
+    assert!(sorted.iter().any(|i| i.region == Region::Asia));
+    assert!(sorted.iter().any(|i| i.region == Region::RestOfWorld));
+
+    // Verify region hierarchy: US first (0), then Europe (1), then Asia (2), then RestOfWorld (3)
     let first_index = &sorted[0];
     assert_eq!(first_index.region, Region::UnitedStates);
+
+    let last_index = sorted.last().unwrap();
+    assert_eq!(last_index.region, Region::RestOfWorld);
 
     let mut last_region = Region::UnitedStates;
     for idx in &sorted {
@@ -68,6 +77,30 @@ fn test_clean_symbol_no_caret() {
 
     let dji = indices.iter().find(|i| i.id == "dowjones").unwrap();
     assert_eq!(dji.clean_symbol(), "DJI");
+
+    let vix = indices.iter().find(|i| i.id == "vix").unwrap();
+    assert_eq!(vix.clean_symbol(), "VIX");
+
+    let smi = indices.iter().find(|i| i.id == "smi20").unwrap();
+    assert_eq!(smi.clean_symbol(), "SMI");
+
+    let mib = indices.iter().find(|i| i.id == "ftsemib").unwrap();
+    assert_eq!(mib.clean_symbol(), "MIB");
+
+    let ssec = indices.iter().find(|i| i.id == "shanghai").unwrap();
+    assert_eq!(ssec.clean_symbol(), "SSEC");
+
+    let nifty = indices.iter().find(|i| i.id == "nifty50").unwrap();
+    assert_eq!(nifty.clean_symbol(), "NIFTY");
+
+    let kospi = indices.iter().find(|i| i.id == "kospi").unwrap();
+    assert_eq!(kospi.clean_symbol(), "KOSPI");
+
+    let tsx = indices.iter().find(|i| i.id == "tsx").unwrap();
+    assert_eq!(tsx.clean_symbol(), "TSX");
+
+    let ibov = indices.iter().find(|i| i.id == "bovespa").unwrap();
+    assert_eq!(ibov.clean_symbol(), "IBOV");
 }
 
 #[test]
@@ -142,6 +175,27 @@ fn test_constituent_roster_counts() {
 
     let nasdaq = indices.iter().find(|i| i.id == "nasdaq100").unwrap();
     assert_eq!(nasdaq.constituents.len(), 50, "Nasdaq sample constituents must be populated");
+
+    let vix = indices.iter().find(|i| i.id == "vix").unwrap();
+    assert_eq!(vix.constituents.len(), 6, "VIX proxies must be populated");
+
+    let smi = indices.iter().find(|i| i.id == "smi20").unwrap();
+    assert_eq!(smi.constituents.len(), 12, "SMI constituents must be populated");
+
+    let ssec = indices.iter().find(|i| i.id == "shanghai").unwrap();
+    assert_eq!(ssec.constituents.len(), 10, "Shanghai constituents must be populated");
+
+    let kospi = indices.iter().find(|i| i.id == "kospi").unwrap();
+    assert_eq!(kospi.constituents.len(), 10, "KOSPI constituents must be populated");
+
+    let tsx = indices.iter().find(|i| i.id == "tsx").unwrap();
+    assert_eq!(tsx.constituents.len(), 10, "TSX constituents must be populated");
+
+    let bovespa = indices.iter().find(|i| i.id == "bovespa").unwrap();
+    assert_eq!(bovespa.constituents.len(), 10, "Bovespa constituents must be populated");
+
+    let ipc = indices.iter().find(|i| i.id == "ipcmexico").unwrap();
+    assert_eq!(ipc.constituents.len(), 10, "IPC Mexico constituents must be populated");
 }
 
 #[test]
@@ -322,4 +376,30 @@ fn test_index_points_formatting() {
     // Sort column naming for indices
     assert_eq!(SortColumn::Price.as_str_for_indices(), "Points");
     assert_eq!(SortColumn::Price.as_str(), "Price");
+}
+
+#[test]
+fn test_multi_currency_formatting() {
+    use fintop::model::{format_market_cap, format_price};
+
+    // JPY and KRW without decimal fractions
+    assert_eq!(format_price(2680.0, "JPY"), "¥2,680");
+    assert_eq!(format_price(59200.0, "KRW"), "₩59,200");
+    assert_eq!(format_price(198000.0, "KRW"), "₩198,000");
+
+    // Other currencies with 2 decimal places
+    assert_eq!(format_price(84.50, "CHF"), "CHF 84.50");
+    assert_eq!(format_price(168.50, "CAD"), "C$168.50");
+    assert_eq!(format_price(144.50, "AUD"), "A$144.50");
+    assert_eq!(format_price(1560.00, "CNY"), "¥1,560.00");
+    assert_eq!(format_price(2715.00, "INR"), "₹2,715.00");
+    assert_eq!(format_price(1060.00, "TWD"), "NT$1,060.00");
+    assert_eq!(format_price(39.20, "SGD"), "S$39.20");
+    assert_eq!(format_price(36.80, "BRL"), "R$36.80");
+    assert_eq!(format_price(59.80, "MXN"), "Mex$59.80");
+
+    // Market cap abbreviations
+    assert_eq!(format_market_cap(353_000_000_000_000, "KRW"), "₩353.00T");
+    assert_eq!(format_market_cap(27_500_000_000_000, "TWD"), "NT$27.50T");
+    assert_eq!(format_market_cap(238_000_000_000, "CAD"), "C$238.0B");
 }

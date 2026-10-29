@@ -273,13 +273,22 @@ pub fn currency_symbol(curr: &str) -> &'static str {
         "JPY" => "¥",
         "CHF" => "CHF ",
         "HKD" => "HK$",
+        "CAD" => "C$",
+        "AUD" => "A$",
+        "CNY" => "¥",
+        "INR" => "₹",
+        "KRW" => "₩",
+        "TWD" => "NT$",
+        "SGD" => "S$",
+        "BRL" => "R$",
+        "MXN" => "Mex$",
         _ => "",
     }
 }
 
 pub fn format_price(price: f64, currency: &str) -> String {
     let sym = currency_symbol(currency);
-    if currency.eq_ignore_ascii_case("JPY") {
+    if currency.eq_ignore_ascii_case("JPY") || currency.eq_ignore_ascii_case("KRW") {
         let rounded = price.round() as i64;
         let int_str = rounded.to_string();
         let mut result = String::new();

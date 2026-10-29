@@ -96,6 +96,21 @@ pub fn get_default_indices() -> Vec<MarketIndex> {
             previous_close: 2203.20,
             constituents: get_russell2000_sample_constituents(),
         },
+        MarketIndex {
+            id: "vix".to_string(),
+            symbol: "^VIX".to_string(),
+            display_symbol: "VIX".to_string(),
+            name: "CBOE Volatility Index".to_string(),
+            region: Region::UnitedStates,
+            currency: "USD".to_string(),
+            current_price: 19.34,
+            change: -0.42,
+            change_percent: -2.13,
+            day_high: 20.15,
+            day_low: 18.90,
+            previous_close: 19.76,
+            constituents: get_vix_constituents(),
+        },
 
         // Europe (Region::Europe)
         MarketIndex {
@@ -173,13 +188,88 @@ pub fn get_default_indices() -> Vec<MarketIndex> {
             previous_close: 7517.30,
             constituents: get_cac40_constituents(),
         },
+        MarketIndex {
+            id: "smi20".to_string(),
+            symbol: "^SSMI".to_string(),
+            display_symbol: "SMI".to_string(),
+            name: "SMI (Switzerland)".to_string(),
+            region: Region::Europe,
+            currency: "CHF".to_string(),
+            current_price: 12180.50,
+            change: 32.10,
+            change_percent: 0.26,
+            day_high: 12220.00,
+            day_low: 12140.00,
+            previous_close: 12148.40,
+            constituents: get_smi_constituents(),
+        },
+        MarketIndex {
+            id: "ibex35".to_string(),
+            symbol: "^IBEX".to_string(),
+            display_symbol: "IBEX".to_string(),
+            name: "IBEX 35 (Spain)".to_string(),
+            region: Region::Europe,
+            currency: "EUR".to_string(),
+            current_price: 11845.20,
+            change: 48.60,
+            change_percent: 0.41,
+            day_high: 11890.00,
+            day_low: 11795.00,
+            previous_close: 11796.60,
+            constituents: get_ibex_constituents(),
+        },
+        MarketIndex {
+            id: "ftsemib".to_string(),
+            symbol: "FTSEMIB.MI".to_string(),
+            display_symbol: "MIB".to_string(),
+            name: "FTSE MIB (Italy)".to_string(),
+            region: Region::Europe,
+            currency: "EUR".to_string(),
+            current_price: 34920.80,
+            change: 115.40,
+            change_percent: 0.33,
+            day_high: 35050.00,
+            day_low: 34780.00,
+            previous_close: 34805.40,
+            constituents: get_ftsemib_constituents(),
+        },
+        MarketIndex {
+            id: "aex".to_string(),
+            symbol: "^AEX".to_string(),
+            display_symbol: "AEX".to_string(),
+            name: "AEX 25 (Netherlands)".to_string(),
+            region: Region::Europe,
+            currency: "EUR".to_string(),
+            current_price: 896.40,
+            change: 3.20,
+            change_percent: 0.36,
+            day_high: 899.80,
+            day_low: 892.10,
+            previous_close: 893.20,
+            constituents: get_aex_constituents(),
+        },
+        MarketIndex {
+            id: "mdax".to_string(),
+            symbol: "^MDAXI".to_string(),
+            display_symbol: "MDAX".to_string(),
+            name: "MDAX (Germany MidCap)".to_string(),
+            region: Region::Europe,
+            currency: "EUR".to_string(),
+            current_price: 26840.50,
+            change: -35.20,
+            change_percent: -0.13,
+            day_high: 26980.00,
+            day_low: 26750.00,
+            previous_close: 26875.70,
+            constituents: get_mdax_constituents(),
+        },
 
-        // Asia (Region::Asia)
+        // Asia-Pacific (Region::Asia)
         MarketIndex {
             id: "nikkei225".to_string(),
             symbol: "^N225".to_string(),
             display_symbol: "N225".to_string(),
-            name: "Nikkei 225".to_string(),
+            name: "Nikkei 225 (Japan)".to_string(),
             region: Region::Asia,
             currency: "JPY".to_string(),
             current_price: 38981.75,
@@ -194,7 +284,7 @@ pub fn get_default_indices() -> Vec<MarketIndex> {
             id: "hangseng".to_string(),
             symbol: "^HSI".to_string(),
             display_symbol: "HSI".to_string(),
-            name: "Hang Seng".to_string(),
+            name: "Hang Seng (Hong Kong)".to_string(),
             region: Region::Asia,
             currency: "HKD".to_string(),
             current_price: 20610.45,
@@ -204,6 +294,158 @@ pub fn get_default_indices() -> Vec<MarketIndex> {
             day_low: 20490.00,
             previous_close: 20678.95,
             constituents: get_hangseng_constituents(),
+        },
+        MarketIndex {
+            id: "shanghai".to_string(),
+            symbol: "000001.SS".to_string(),
+            display_symbol: "SSEC".to_string(),
+            name: "Shanghai Composite".to_string(),
+            region: Region::Asia,
+            currency: "CNY".to_string(),
+            current_price: 3286.40,
+            change: 22.10,
+            change_percent: 0.68,
+            day_high: 3310.00,
+            day_low: 3260.00,
+            previous_close: 3264.30,
+            constituents: get_shanghai_constituents(),
+        },
+        MarketIndex {
+            id: "nifty50".to_string(),
+            symbol: "^NSEI".to_string(),
+            display_symbol: "NIFTY".to_string(),
+            name: "Nifty 50 (India)".to_string(),
+            region: Region::Asia,
+            currency: "INR".to_string(),
+            current_price: 24399.40,
+            change: 158.20,
+            change_percent: 0.65,
+            day_high: 24460.00,
+            day_low: 24280.00,
+            previous_close: 24241.20,
+            constituents: get_nifty50_constituents(),
+        },
+        MarketIndex {
+            id: "sensex".to_string(),
+            symbol: "^BSESN".to_string(),
+            display_symbol: "SENSEX".to_string(),
+            name: "BSE Sensex (India)".to_string(),
+            region: Region::Asia,
+            currency: "INR".to_string(),
+            current_price: 80220.70,
+            change: 480.50,
+            change_percent: 0.60,
+            day_high: 80450.00,
+            day_low: 79890.00,
+            previous_close: 79740.20,
+            constituents: get_sensex_constituents(),
+        },
+        MarketIndex {
+            id: "kospi".to_string(),
+            symbol: "^KS11".to_string(),
+            display_symbol: "KOSPI".to_string(),
+            name: "KOSPI (South Korea)".to_string(),
+            region: Region::Asia,
+            currency: "KRW".to_string(),
+            current_price: 2612.43,
+            change: 14.80,
+            change_percent: 0.57,
+            day_high: 2628.00,
+            day_low: 2595.00,
+            previous_close: 2597.63,
+            constituents: get_kospi_constituents(),
+        },
+        MarketIndex {
+            id: "taiex".to_string(),
+            symbol: "^TWII".to_string(),
+            display_symbol: "TAIEX".to_string(),
+            name: "TAIEX (Taiwan)".to_string(),
+            region: Region::Asia,
+            currency: "TWD".to_string(),
+            current_price: 23292.50,
+            change: 185.30,
+            change_percent: 0.80,
+            day_high: 23380.00,
+            day_low: 23150.00,
+            previous_close: 23107.20,
+            constituents: get_taiex_constituents(),
+        },
+        MarketIndex {
+            id: "asx200".to_string(),
+            symbol: "^AXJO".to_string(),
+            display_symbol: "AXJO".to_string(),
+            name: "S&P/ASX 200 (Australia)".to_string(),
+            region: Region::Asia,
+            currency: "AUD".to_string(),
+            current_price: 8221.30,
+            change: 28.50,
+            change_percent: 0.35,
+            day_high: 8245.00,
+            day_low: 8195.00,
+            previous_close: 8192.80,
+            constituents: get_asx200_constituents(),
+        },
+        MarketIndex {
+            id: "sti".to_string(),
+            symbol: "^STI".to_string(),
+            display_symbol: "STI".to_string(),
+            name: "Straits Times (Singapore)".to_string(),
+            region: Region::Asia,
+            currency: "SGD".to_string(),
+            current_price: 3587.40,
+            change: 9.20,
+            change_percent: 0.26,
+            day_high: 3598.00,
+            day_low: 3574.00,
+            previous_close: 3578.20,
+            constituents: get_sti_constituents(),
+        },
+
+        // Rest of World (Region::RestOfWorld)
+        MarketIndex {
+            id: "tsx".to_string(),
+            symbol: "^GSPTSE".to_string(),
+            display_symbol: "TSX".to_string(),
+            name: "S&P/TSX Composite (Canada)".to_string(),
+            region: Region::RestOfWorld,
+            currency: "CAD".to_string(),
+            current_price: 24565.80,
+            change: 82.40,
+            change_percent: 0.34,
+            day_high: 24620.00,
+            day_low: 24490.00,
+            previous_close: 24483.40,
+            constituents: get_tsx_constituents(),
+        },
+        MarketIndex {
+            id: "bovespa".to_string(),
+            symbol: "^BVSP".to_string(),
+            display_symbol: "IBOV".to_string(),
+            name: "Ibovespa (Brazil)".to_string(),
+            region: Region::RestOfWorld,
+            currency: "BRL".to_string(),
+            current_price: 130720.50,
+            change: -210.30,
+            change_percent: -0.16,
+            day_high: 131200.00,
+            day_low: 130250.00,
+            previous_close: 130930.80,
+            constituents: get_bovespa_constituents(),
+        },
+        MarketIndex {
+            id: "ipcmexico".to_string(),
+            symbol: "^MXX".to_string(),
+            display_symbol: "IPC".to_string(),
+            name: "IPC (Mexico)".to_string(),
+            region: Region::RestOfWorld,
+            currency: "MXN".to_string(),
+            current_price: 51840.20,
+            change: 65.40,
+            change_percent: 0.13,
+            day_high: 52050.00,
+            day_low: 51680.00,
+            previous_close: 51774.80,
+            constituents: get_ipcmexico_constituents(),
         },
     ]
 }
@@ -603,5 +845,251 @@ pub fn get_russell2000_sample_constituents() -> Vec<ConstituentStock> {
         stock("CRS", "Carpenter Technology Corp", "USD", 168.20, 3.10, 1.88, 171.00, 164.50, 560000, 8_400_000_000),
         stock("AMKR", "Amkor Technology Inc", "USD", 28.60, 0.40, 1.42, 29.20, 28.10, 2100000, 7_000_000_000),
         stock("POWI", "Power Integrations Inc", "USD", 68.40, -0.90, -1.30, 70.10, 67.80, 680000, 3_900_000_000),
+    ]
+}
+
+pub fn get_vix_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("VXX", "iPath Series B S&P 500 VIX Short-Term Futures ETN", "USD", 54.20, -1.15, -2.08, 56.10, 53.80, 4800000, 850_000_000),
+        stock("UVXY", "ProShares Ultra VIX Short-Term Futures ETF", "USD", 28.40, -1.20, -4.05, 30.10, 28.10, 8200000, 420_000_000),
+        stock("SVIX", "-1x Short VIX Futures ETF", "USD", 48.60, 1.10, 2.32, 49.20, 47.40, 1200000, 280_000_000),
+        stock("SPY", "SPDR S&P 500 ETF Trust", "USD", 584.20, 2.40, 0.41, 586.50, 582.00, 42000000, 580_000_000_000),
+        stock("QQQ", "Invesco QQQ Trust", "USD", 502.80, 3.80, 0.76, 505.40, 499.20, 32000000, 290_000_000_000),
+        stock("VIXY", "ProShares VIX Short-Term Futures ETF", "USD", 14.85, -0.32, -2.11, 15.35, 14.70, 2400000, 210_000_000),
+    ]
+}
+
+pub fn get_smi_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("NESN.SW", "Nestlé S.A.", "CHF", 84.50, 0.40, 0.48, 85.20, 84.10, 3800000, 230_000_000_000),
+        stock("ROG.SW", "Roche Holding AG", "CHF", 262.80, 1.40, 0.54, 264.50, 260.90, 1200000, 220_000_000_000),
+        stock("NOVN.SW", "Novartis AG", "CHF", 98.40, 0.60, 0.61, 99.20, 97.80, 3100000, 210_000_000_000),
+        stock("UBSG.SW", "UBS Group AG", "CHF", 28.50, 0.35, 1.24, 28.80, 28.10, 4800000, 95_000_000_000),
+        stock("ABBN.SW", "ABB Ltd", "CHF", 51.20, 0.40, 0.79, 51.60, 50.80, 1950000, 90_000_000_000),
+        stock("CFR.SW", "Compagnie Financière Richemont", "CHF", 132.50, 1.20, 0.91, 134.00, 131.00, 780000, 75_000_000_000),
+        stock("ZURN.SW", "Zurich Insurance Group", "CHF", 495.00, 2.50, 0.51, 498.00, 491.00, 340000, 70_000_000_000),
+        stock("SIK.SW", "Sika AG", "CHF", 254.00, 2.20, 0.87, 256.50, 252.00, 410000, 40_000_000_000),
+        stock("LONN.SW", "Lonza Group AG", "CHF", 540.00, 4.00, 0.75, 545.00, 535.00, 290000, 39_000_000_000),
+        stock("ALC.SW", "Alcon AG", "CHF", 82.50, 0.60, 0.73, 83.40, 81.80, 750000, 41_000_000_000),
+        stock("GIVN.SW", "Givaudan SA", "CHF", 4210.00, 30.00, 0.72, 4240.00, 4180.00, 45000, 38_000_000_000),
+        stock("HOLN.SW", "Holcim Ltd", "CHF", 88.20, 0.50, 0.57, 89.00, 87.50, 980000, 49_000_000_000),
+    ]
+}
+
+pub fn get_ibex_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("ITX.MC", "Inditex (Zara)", "EUR", 51.20, 0.40, 0.79, 51.80, 50.70, 3100000, 160_000_000_000),
+        stock("IBE.MC", "Iberdrola SA", "EUR", 13.75, 0.05, 0.36, 13.85, 13.65, 8900000, 85_000_000_000),
+        stock("SAN.MC", "Banco Santander SA", "EUR", 4.52, 0.04, 0.89, 4.56, 4.47, 28500000, 70_000_000_000),
+        stock("BBVA.MC", "Banco Bilbao Vizcaya Argentaria", "EUR", 9.15, 0.08, 0.88, 9.25, 9.05, 19500000, 54_000_000_000),
+        stock("CABK.MC", "CaixaBank SA", "EUR", 5.40, 0.05, 0.93, 5.46, 5.34, 12400000, 39_000_000_000),
+        stock("AMS.MC", "Amadeus IT Group", "EUR", 66.80, 0.60, 0.91, 67.40, 66.10, 850000, 30_000_000_000),
+        stock("AENA.MC", "Aena SME SA", "EUR", 198.00, 1.20, 0.61, 200.00, 196.50, 190000, 29_000_000_000),
+        stock("FER.MC", "Ferrovial SE", "EUR", 38.50, 0.30, 0.79, 38.90, 38.10, 920000, 27_000_000_000),
+        stock("TEF.MC", "Telefónica SA", "EUR", 4.35, -0.02, -0.46, 4.40, 4.32, 14500000, 24_000_000_000),
+        stock("CLNX.MC", "Cellnex Telecom", "EUR", 32.40, 0.25, 0.78, 32.80, 32.10, 1400000, 22_000_000_000),
+        stock("ELE.MC", "Endesa SA", "EUR", 19.80, 0.10, 0.51, 20.00, 19.65, 980000, 21_000_000_000),
+        stock("REP.MC", "Repsol SA", "EUR", 11.90, -0.15, -1.24, 12.15, 11.80, 5200000, 14_000_000_000),
+    ]
+}
+
+pub fn get_ftsemib_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("RACE.MI", "Ferrari N.V.", "EUR", 425.00, 3.20, 0.76, 428.00, 421.00, 320000, 78_000_000_000),
+        stock("ENEL.MI", "Enel S.p.A.", "EUR", 7.15, 0.02, 0.28, 7.22, 7.10, 18200000, 72_000_000_000),
+        stock("ISP.MI", "Intesa Sanpaolo S.p.A.", "EUR", 3.89, 0.03, 0.78, 3.92, 3.85, 34000000, 70_000_000_000),
+        stock("UCG.MI", "UniCredit S.p.A.", "EUR", 41.50, 0.45, 1.10, 42.00, 41.10, 6800000, 67_000_000_000),
+        stock("ENI.MI", "Eni S.p.A.", "EUR", 14.30, -0.12, -0.83, 14.55, 14.20, 9200000, 48_000_000_000),
+        stock("G.MI", "Assicurazioni Generali", "EUR", 26.20, 0.15, 0.58, 26.45, 26.00, 2800000, 40_000_000_000),
+        stock("STLAM.MI", "Stellantis N.V.", "EUR", 12.45, -0.15, -1.19, 12.70, 12.30, 14500000, 38_000_000_000),
+        stock("PRY.MI", "Prysmian S.p.A.", "EUR", 66.80, 0.90, 1.37, 67.40, 65.80, 850000, 19_000_000_000),
+        stock("TRN.MI", "Terna S.p.A.", "EUR", 7.95, 0.04, 0.51, 8.02, 7.89, 4100000, 16_000_000_000),
+        stock("MONC.MI", "Moncler S.p.A.", "EUR", 54.60, -0.40, -0.73, 55.40, 54.10, 650000, 15_000_000_000),
+        stock("SRG.MI", "Snam S.p.A.", "EUR", 4.45, 0.02, 0.45, 4.49, 4.41, 5200000, 15_000_000_000),
+        stock("LDO.MI", "Leonardo S.p.A.", "EUR", 22.80, 0.35, 1.56, 23.10, 22.40, 1900000, 13_000_000_000),
+    ]
+}
+
+pub fn get_aex_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("ASML.AS", "ASML Holding N.V.", "EUR", 655.40, 8.20, 1.27, 662.00, 648.00, 1450000, 260_000_000_000),
+        stock("SHELL.AS", "Shell plc", "EUR", 31.20, -0.25, -0.79, 31.60, 31.05, 6200000, 195_000_000_000),
+        stock("UNA.AS", "Unilever plc", "EUR", 57.50, 0.30, 0.52, 57.90, 57.10, 2100000, 142_000_000_000),
+        stock("PRX.AS", "Prosus N.V.", "EUR", 38.40, -0.40, -1.03, 39.10, 38.00, 3800000, 98_000_000_000),
+        stock("INGA.AS", "ING Groep N.V.", "EUR", 15.80, 0.12, 0.77, 15.95, 15.65, 11200000, 52_000_000_000),
+        stock("ADYEN.AS", "Adyen N.V.", "EUR", 1385.00, 18.00, 1.32, 1400.00, 1365.00, 160000, 44_000_000_000),
+        stock("HEIA.AS", "Heineken N.V.", "EUR", 76.50, 0.45, 0.59, 77.20, 75.90, 890000, 43_000_000_000),
+        stock("WKL.AS", "Wolters Kluwer N.V.", "EUR", 158.20, 1.10, 0.70, 159.50, 156.80, 480000, 38_000_000_000),
+        stock("AD.AS", "Koninklijke Ahold Delhaize", "EUR", 31.40, 0.15, 0.48, 31.80, 31.20, 2400000, 30_000_000_000),
+        stock("DSM.AS", "dsm-firmenich", "EUR", 114.50, 0.80, 0.70, 115.80, 113.60, 420000, 30_000_000_000),
+        stock("ASM.AS", "ASM International N.V.", "EUR", 532.00, 7.50, 1.43, 538.00, 524.00, 180000, 26_000_000_000),
+        stock("AKZA.AS", "Akzo Nobel N.V.", "EUR", 59.80, -0.30, -0.50, 60.50, 59.30, 560000, 10_000_000_000),
+    ]
+}
+
+pub fn get_mdax_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("NEM.DE", "Nemetschek SE", "EUR", 98.20, 1.40, 1.45, 99.40, 96.80, 180000, 11_300_000_000),
+        stock("HLE.DE", "Hella GmbH & Co. KGaA", "EUR", 88.50, 0.60, 0.68, 89.20, 87.90, 95000, 9_800_000_000),
+        stock("HOT.DE", "Hochtief AG", "EUR", 112.40, 1.10, 0.99, 113.80, 111.00, 110000, 8_500_000_000),
+        stock("EVK.DE", "Evonik Industries AG", "EUR", 18.20, 0.10, 0.55, 18.45, 18.05, 780000, 8_500_000_000),
+        stock("LHA.DE", "Deutsche Lufthansa AG", "EUR", 6.45, -0.05, -0.77, 6.55, 6.40, 4200000, 7_700_000_000),
+        stock("LEG.DE", "LEG Immobilien SE", "EUR", 84.50, -0.60, -0.71, 85.80, 84.10, 240000, 6_400_000_000),
+        stock("PUM.DE", "Puma SE", "EUR", 42.10, -0.45, -1.06, 42.90, 41.80, 620000, 6_300_000_000),
+        stock("KGX.DE", "KION GROUP AG", "EUR", 37.80, 0.50, 1.34, 38.30, 37.10, 380000, 5_000_000_000),
+        stock("FPE3.DE", "Fuchs SE Vz", "EUR", 36.80, 0.20, 0.55, 37.20, 36.50, 160000, 4_800_000_000),
+        stock("TKA.DE", "Thyssenkrupp AG", "EUR", 3.45, 0.04, 1.17, 3.52, 3.39, 3900000, 2_150_000_000),
+        stock("AIXA.DE", "Aixtron SE", "EUR", 15.60, 0.35, 2.30, 16.00, 15.20, 890000, 1_750_000_000),
+        stock("DEQ.DE", "Deutsche EuroShop AG", "EUR", 21.20, 0.10, 0.47, 21.50, 21.00, 90000, 1_600_000_000),
+    ]
+}
+
+pub fn get_shanghai_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("600519.SS", "Kweichow Moutai Co Ltd", "CNY", 1560.00, 18.00, 1.17, 1578.00, 1542.00, 3400000, 1_960_000_000_000),
+        stock("601398.SS", "ICBC (Ind & Comm Bank)", "CNY", 6.12, 0.04, 0.66, 6.18, 6.07, 185000000, 2_180_000_000_000),
+        stock("601288.SS", "Agricultural Bank of China", "CNY", 4.82, 0.03, 0.63, 4.86, 4.78, 142000000, 1_680_000_000_000),
+        stock("601857.SS", "PetroChina Co Ltd", "CNY", 8.25, -0.06, -0.72, 8.36, 8.20, 68000000, 1_510_000_000_000),
+        stock("601988.SS", "Bank of China Ltd", "CNY", 4.95, 0.02, 0.41, 4.99, 4.91, 118000000, 1_450_000_000_000),
+        stock("601318.SS", "Ping An Insurance Co", "CNY", 54.20, 0.60, 1.12, 54.90, 53.50, 48000000, 980_000_000_000),
+        stock("600036.SS", "China Merchants Bank", "CNY", 38.60, 0.45, 1.18, 39.10, 38.00, 41000000, 970_000_000_000),
+        stock("601088.SS", "China Shenhua Energy", "CNY", 41.50, 0.30, 0.73, 42.00, 41.10, 21000000, 820_000_000_000),
+        stock("600900.SS", "China Yangtze Power", "CNY", 29.80, 0.15, 0.51, 30.10, 29.60, 29000000, 730_000_000_000),
+        stock("601899.SS", "Zijin Mining Group", "CNY", 17.40, 0.28, 1.64, 17.65, 17.10, 65000000, 460_000_000_000),
+    ]
+}
+
+pub fn get_nifty50_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("RELIANCE.NS", "Reliance Industries Ltd", "INR", 2715.00, 18.50, 0.69, 2735.00, 2695.00, 6400000, 18_400_000_000_000),
+        stock("TCS.NS", "Tata Consultancy Services", "INR", 4050.00, 32.00, 0.80, 4085.00, 4015.00, 1850000, 14_600_000_000_000),
+        stock("HDFCBANK.NS", "HDFC Bank Ltd", "INR", 1740.00, 14.50, 0.84, 1755.00, 1722.00, 12500000, 13_200_000_000_000),
+        stock("BHARTIARTL.NS", "Bharti Airtel Ltd", "INR", 1680.00, 18.00, 1.08, 1695.00, 1660.00, 4200000, 9_600_000_000_000),
+        stock("ICICIBANK.NS", "ICICI Bank Ltd", "INR", 1260.00, 11.00, 0.88, 1272.00, 1248.00, 9800000, 8_850_000_000_000),
+        stock("INFY.NS", "Infosys Ltd", "INR", 1860.00, 16.50, 0.90, 1878.00, 1840.00, 5600000, 7_720_000_000_000),
+        stock("SBIN.NS", "State Bank of India", "INR", 825.00, 6.50, 0.79, 832.00, 818.00, 14200000, 7_360_000_000_000),
+        stock("ITC.NS", "ITC Ltd", "INR", 485.00, 2.50, 0.52, 489.00, 481.50, 8900000, 6_050_000_000_000),
+        stock("HINDUNILVR.NS", "Hindustan Unilever Ltd", "INR", 2540.00, -8.00, -0.31, 2565.00, 2530.00, 1600000, 5_960_000_000_000),
+        stock("LT.NS", "Larsen & Toubro Ltd", "INR", 3580.00, 28.00, 0.79, 3610.00, 3545.00, 1950000, 4_920_000_000_000),
+    ]
+}
+
+pub fn get_sensex_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("RELIANCE.BO", "Reliance Industries Ltd", "INR", 2714.50, 18.00, 0.67, 2734.50, 2694.00, 820000, 18_400_000_000_000),
+        stock("TCS.BO", "Tata Consultancy Services", "INR", 4048.00, 31.50, 0.78, 4082.00, 4012.00, 290000, 14_600_000_000_000),
+        stock("HDFCBANK.BO", "HDFC Bank Ltd", "INR", 1739.50, 14.00, 0.81, 1754.00, 1721.50, 1150000, 13_200_000_000_000),
+        stock("BHARTIARTL.BO", "Bharti Airtel Ltd", "INR", 1679.00, 17.50, 1.05, 1694.00, 1659.00, 480000, 9_600_000_000_000),
+        stock("ICICIBANK.BO", "ICICI Bank Ltd", "INR", 1259.50, 10.50, 0.84, 1271.00, 1247.50, 920000, 8_850_000_000_000),
+        stock("INFY.BO", "Infosys Ltd", "INR", 1859.00, 16.00, 0.87, 1876.00, 1839.00, 650000, 7_720_000_000_000),
+        stock("SBIN.BO", "State Bank of India", "INR", 824.50, 6.00, 0.73, 831.50, 817.50, 1850000, 7_360_000_000_000),
+        stock("ITC.BO", "ITC Ltd", "INR", 484.50, 2.00, 0.41, 488.50, 481.00, 980000, 6_050_000_000_000),
+        stock("HINDUNILVR.BO", "Hindustan Unilever Ltd", "INR", 2538.00, -7.50, -0.29, 2562.00, 2528.00, 210000, 5_960_000_000_000),
+        stock("LT.BO", "Larsen & Toubro Ltd", "INR", 3578.00, 27.50, 0.77, 3608.00, 3542.00, 260000, 4_920_000_000_000),
+    ]
+}
+
+pub fn get_kospi_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("005930.KS", "Samsung Electronics", "KRW", 59200.0, 600.0, 1.02, 59800.0, 58600.0, 18400000, 353_000_000_000_000),
+        stock("000660.KS", "SK Hynix Inc", "KRW", 198000.0, 3200.0, 1.64, 201000.0, 194500.0, 3850000, 144_000_000_000_000),
+        stock("373220.KS", "LG Energy Solution", "KRW", 405000.0, -2500.0, -0.61, 412000.0, 401500.0, 420000, 95_000_000_000_000),
+        stock("207940.KS", "Samsung Biologics", "KRW", 1040000.0, 8000.0, 0.78, 1052000.0, 1031000.0, 85000, 74_000_000_000_000),
+        stock("005380.KS", "Hyundai Motor Co", "KRW", 235000.0, 1500.0, 0.64, 238000.0, 233000.0, 680000, 49_000_000_000_000),
+        stock("068270.KS", "Celltrion Inc", "KRW", 188000.0, 1200.0, 0.64, 190500.0, 186000.0, 520000, 41_000_000_000_000),
+        stock("105560.KS", "KB Financial Group", "KRW", 95000.0, 1100.0, 1.17, 96200.0, 93800.0, 1100000, 38_000_000_000_000),
+        stock("000270.KS", "Kia Corp", "KRW", 94000.0, 400.0, 0.43, 95200.0, 93400.0, 890000, 37_000_000_000_000),
+        stock("005490.KS", "POSCO Holdings Inc", "KRW", 345000.0, -1500.0, -0.43, 351000.0, 342500.0, 280000, 29_000_000_000_000),
+        stock("035420.KS", "NAVER Corp", "KRW", 172000.0, 1800.0, 1.06, 174500.0, 170000.0, 480000, 27_000_000_000_000),
+    ]
+}
+
+pub fn get_taiex_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("2330.TW", "Taiwan Semiconductor (TSMC)", "TWD", 1060.00, 15.00, 1.44, 1070.00, 1050.00, 32500000, 27_500_000_000_000),
+        stock("2317.TW", "Hon Hai Precision (Foxconn)", "TWD", 215.00, 2.50, 1.18, 218.00, 212.50, 48200000, 2_980_000_000_000),
+        stock("2454.TW", "MediaTek Inc", "TWD", 1310.00, 15.00, 1.16, 1330.00, 1295.00, 6800000, 2_100_000_000_000),
+        stock("2881.TW", "Fubon Financial Holding", "TWD", 91.50, 0.80, 0.88, 92.40, 90.60, 14200000, 1_230_000_000_000),
+        stock("2382.TW", "Quanta Computer Inc", "TWD", 312.00, 4.00, 1.30, 316.50, 307.50, 11500000, 1_205_000_000_000),
+        stock("2308.TW", "Delta Electronics Inc", "TWD", 402.00, 3.50, 0.88, 407.00, 398.00, 5200000, 1_044_000_000_000),
+        stock("2882.TW", "Cathay Financial Holding", "TWD", 68.50, 0.40, 0.59, 69.20, 67.90, 16800000, 1_010_000_000_000),
+        stock("2412.TW", "Chunghwa Telecom Co Ltd", "TWD", 124.00, 0.50, 0.40, 124.50, 123.50, 4900000, 960_000_000_000),
+        stock("2891.TW", "CTBC Financial Holding", "TWD", 36.80, 0.30, 0.82, 37.20, 36.40, 24500000, 720_000_000_000),
+        stock("2303.TW", "United Microelectronics (UMC)", "TWD", 49.80, 0.20, 0.40, 50.40, 49.30, 28000000, 625_000_000_000),
+    ]
+}
+
+pub fn get_asx200_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("CBA.AX", "Commonwealth Bank of Australia", "AUD", 144.50, 1.20, 0.84, 145.80, 143.10, 2800000, 241_000_000_000),
+        stock("BHP.AX", "BHP Group Ltd", "AUD", 42.80, -0.30, -0.70, 43.40, 42.50, 8900000, 217_000_000_000),
+        stock("CSL.AX", "CSL Ltd", "AUD", 292.00, 2.50, 0.86, 295.00, 289.00, 980000, 141_000_000_000),
+        stock("NAB.AX", "National Australia Bank", "AUD", 38.60, 0.30, 0.78, 38.95, 38.25, 4500000, 120_000_000_000),
+        stock("WBC.AX", "Westpac Banking Corp", "AUD", 32.40, 0.25, 0.78, 32.70, 32.10, 5100000, 112_000_000_000),
+        stock("ANZ.AX", "ANZ Group Holdings Ltd", "AUD", 31.80, 0.20, 0.63, 32.10, 31.50, 4800000, 95_000_000_000),
+        stock("MQG.AX", "Macquarie Group Ltd", "AUD", 228.00, 2.80, 1.24, 230.50, 225.00, 620000, 87_000_000_000),
+        stock("WES.AX", "Wesfarmers Ltd", "AUD", 71.50, 0.45, 0.63, 72.20, 70.90, 1400000, 81_000_000_000),
+        stock("FMG.AX", "Fortescue Ltd", "AUD", 19.80, -0.25, -1.25, 20.20, 19.60, 7200000, 61_000_000_000),
+        stock("WOW.AX", "Woolworths Group Ltd", "AUD", 31.20, 0.15, 0.48, 31.55, 31.00, 2600000, 38_000_000_000),
+    ]
+}
+
+pub fn get_sti_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("D05.SI", "DBS Group Holdings Ltd", "SGD", 39.20, 0.35, 0.90, 39.55, 38.80, 3800000, 111_000_000_000),
+        stock("O39.SI", "Oversea-Chinese Banking Corp", "SGD", 15.40, 0.10, 0.65, 15.55, 15.28, 5200000, 69_000_000_000),
+        stock("U11.SI", "United Overseas Bank Ltd", "SGD", 32.50, 0.25, 0.78, 32.80, 32.20, 2900000, 54_000_000_000),
+        stock("Z74.SI", "Singtel", "SGD", 3.18, 0.02, 0.63, 3.22, 3.15, 18500000, 52_000_000_000),
+        stock("C6L.SI", "Singapore Airlines Ltd", "SGD", 6.45, -0.03, -0.46, 6.52, 6.41, 4100000, 19_200_000_000),
+        stock("C38U.SI", "CapitaLand Int Comm Trust", "SGD", 2.05, 0.01, 0.49, 2.08, 2.03, 9800000, 13_800_000_000),
+        stock("Y92.SI", "Thai Beverage PLC", "SGD", 0.52, 0.00, 0.00, 0.53, 0.51, 14200000, 13_000_000_000),
+        stock("A17U.SI", "CapitaLand Ascendas REIT", "SGD", 2.82, 0.02, 0.71, 2.85, 2.79, 7400000, 12_400_000_000),
+        stock("BN4.SI", "Keppel Ltd", "SGD", 6.55, 0.04, 0.61, 6.62, 6.49, 3200000, 11_500_000_000),
+        stock("G13.SI", "Genting Singapore Ltd", "SGD", 0.84, -0.01, -1.18, 0.86, 0.83, 16500000, 10_100_000_000),
+    ]
+}
+
+pub fn get_tsx_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("RY.TO", "Royal Bank of Canada", "CAD", 168.50, 1.20, 0.72, 169.80, 167.10, 2800000, 238_000_000_000),
+        stock("SHOP.TO", "Shopify Inc", "CAD", 114.20, 2.10, 1.87, 116.00, 112.50, 4200000, 147_000_000_000),
+        stock("TD.TO", "Toronto-Dominion Bank", "CAD", 78.40, 0.50, 0.64, 79.20, 77.80, 6800000, 137_000_000_000),
+        stock("ENB.TO", "Enbridge Inc", "CAD", 54.80, 0.35, 0.64, 55.30, 54.40, 7500000, 119_000_000_000),
+        stock("TRI.TO", "Thomson Reuters Corp", "CAD", 228.00, 1.50, 0.66, 230.00, 226.20, 480000, 103_000_000_000),
+        stock("CP.TO", "Canadian Pacific Kansas City", "CAD", 108.50, 0.80, 0.74, 109.80, 107.40, 1600000, 101_000_000_000),
+        stock("CNQ.TO", "Canadian Natural Resources", "CAD", 47.60, -0.40, -0.83, 48.30, 47.20, 8900000, 101_000_000_000),
+        stock("CNR.TO", "Canadian National Railway", "CAD", 154.20, 0.90, 0.59, 155.80, 153.10, 1400000, 98_000_000_000),
+        stock("BMO.TO", "Bank of Montreal", "CAD", 128.50, 0.95, 0.74, 129.80, 127.30, 1950000, 93_000_000_000),
+        stock("BNS.TO", "Bank of Nova Scotia", "CAD", 71.80, 0.45, 0.63, 72.50, 71.20, 3400000, 88_000_000_000),
+    ]
+}
+
+pub fn get_bovespa_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("PETR4.SA", "Petrobras PN", "BRL", 36.80, -0.35, -0.94, 37.40, 36.50, 48000000, 480_000_000_000),
+        stock("ITUB4.SA", "Itaú Unibanco PN", "BRL", 35.60, 0.30, 0.85, 36.10, 35.20, 24000000, 320_000_000_000),
+        stock("VALE3.SA", "Vale S.A.", "BRL", 61.50, -0.50, -0.81, 62.40, 61.00, 22000000, 270_000_000_000),
+        stock("WEGE3.SA", "WEG S.A.", "BRL", 54.80, 0.65, 1.20, 55.40, 53.90, 8500000, 230_000_000_000),
+        stock("ABEV3.SA", "Ambev S.A.", "BRL", 12.40, 0.05, 0.40, 12.55, 12.30, 19500000, 195_000_000_000),
+        stock("BBDC4.SA", "Banco Bradesco PN", "BRL", 14.80, 0.12, 0.82, 15.00, 14.65, 31000000, 150_000_000_000),
+        stock("BBAS3.SA", "Banco do Brasil S.A.", "BRL", 27.80, 0.20, 0.72, 28.20, 27.50, 14000000, 79_000_000_000),
+        stock("SUZB3.SA", "Suzano S.A.", "BRL", 58.20, 0.50, 0.87, 58.90, 57.50, 4200000, 76_000_000_000),
+        stock("B3SA3.SA", "B3 S.A. Brasil Bolsa", "BRL", 11.20, 0.08, 0.72, 11.40, 11.05, 28000000, 62_000_000_000),
+        stock("RENT3.SA", "Localiza Rent a Car", "BRL", 42.50, -0.30, -0.70, 43.20, 42.10, 5600000, 45_000_000_000),
+    ]
+}
+
+pub fn get_ipcmexico_constituents() -> Vec<ConstituentStock> {
+    vec![
+        stock("WALMEX.MX", "Wal-Mart de México", "MXN", 59.80, 0.40, 0.67, 60.50, 59.20, 14500000, 1_043_000_000_000),
+        stock("AMXL.MX", "América Móvil SAB de CV", "MXN", 16.40, 0.10, 0.61, 16.65, 16.25, 28000000, 1_040_000_000_000),
+        stock("GMEXICOB.MX", "Grupo México SAB de CV", "MXN", 108.40, 1.20, 1.12, 110.00, 107.00, 5200000, 844_000_000_000),
+        stock("FEMSAUBD.MX", "Fomento Económico Mexicano", "MXN", 198.50, 0.80, 0.40, 201.00, 196.80, 2900000, 710_000_000_000),
+        stock("GFNORTEO.MX", "Grupo Financiero Banorte", "MXN", 154.20, 1.10, 0.72, 156.00, 152.50, 6800000, 445_000_000_000),
+        stock("AC.MX", "Arca Continental SAB de CV", "MXN", 184.00, 0.90, 0.49, 186.00, 182.50, 950000, 324_000_000_000),
+        stock("BIMOBA.MX", "Grupo Bimbo SAB de CV", "MXN", 66.50, -0.40, -0.60, 67.50, 65.80, 3400000, 295_000_000_000),
+        stock("GAPB.MX", "Grupo Aeroportuario del Pacífico", "MXN", 345.00, 2.50, 0.73, 349.00, 341.00, 420000, 175_000_000_000),
+        stock("CEMEXCPO.MX", "Cemex SAB de CV", "MXN", 11.80, 0.05, 0.43, 11.95, 11.68, 22000000, 172_000_000_000),
+        stock("ASURB.MX", "Grupo Aeroportuario del Sureste", "MXN", 542.00, 3.80, 0.71, 548.00, 536.00, 280000, 162_000_000_000),
     ]
 }
