@@ -7,37 +7,66 @@ use ratatui::{
     Frame,
 };
 
-pub fn render_currencies_table(frame: &mut Frame, app: &mut App, area: Rect, is_focused: bool, is_maximized: bool) {
-    let active_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
-    let default_style = Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD);
+pub fn render_currencies_table(
+    frame: &mut Frame,
+    app: &mut App,
+    area: Rect,
+    is_focused: bool,
+    is_maximized: bool,
+) {
+    let active_style = Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD);
+    let default_style = Style::default()
+        .fg(Color::Cyan)
+        .add_modifier(Modifier::BOLD);
 
     let symbol_label = if app.sort_column_currencies == SortColumn::Symbol {
         format!("Pair {}", app.sort_direction_currencies.indicator())
     } else {
         "Pair".to_string()
     };
-    let symbol_style = if app.sort_column_currencies == SortColumn::Symbol { active_style } else { default_style };
+    let symbol_style = if app.sort_column_currencies == SortColumn::Symbol {
+        active_style
+    } else {
+        default_style
+    };
 
     let name_label = if app.sort_column_currencies == SortColumn::Name {
-        format!("Currency Name {}", app.sort_direction_currencies.indicator())
+        format!(
+            "Currency Name {}",
+            app.sort_direction_currencies.indicator()
+        )
     } else {
         "Currency Name".to_string()
     };
-    let name_style = if app.sort_column_currencies == SortColumn::Name { active_style } else { default_style };
+    let name_style = if app.sort_column_currencies == SortColumn::Name {
+        active_style
+    } else {
+        default_style
+    };
 
     let rate_label = if app.sort_column_currencies == SortColumn::Price {
         format!("Rate {}", app.sort_direction_currencies.indicator())
     } else {
         "Rate".to_string()
     };
-    let rate_style = if app.sort_column_currencies == SortColumn::Price { active_style } else { default_style };
+    let rate_style = if app.sort_column_currencies == SortColumn::Price {
+        active_style
+    } else {
+        default_style
+    };
 
     let pct_label = if app.sort_column_currencies == SortColumn::ChangePercent {
         format!("Chg % {}", app.sort_direction_currencies.indicator())
     } else {
         "Chg %".to_string()
     };
-    let pct_style = if app.sort_column_currencies == SortColumn::ChangePercent { active_style } else { default_style };
+    let pct_style = if app.sort_column_currencies == SortColumn::ChangePercent {
+        active_style
+    } else {
+        default_style
+    };
 
     let header_cells = vec![
         Cell::from(symbol_label).style(symbol_style),
@@ -62,17 +91,29 @@ pub fn render_currencies_table(frame: &mut Frame, app: &mut App, area: Rect, is_
             };
 
             let range_str = if c.day_low > 0.0 && c.day_high > 0.0 {
-                format!("{} - {}", format_rate(c.day_low, &c.base_currency), format_rate(c.day_high, &c.base_currency))
+                format!(
+                    "{} - {}",
+                    format_rate(c.day_low, &c.base_currency),
+                    format_rate(c.day_high, &c.base_currency)
+                )
             } else {
                 "-".to_string()
             };
 
             let cells = vec![
-                Cell::from(c.clean_symbol().to_string()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                Cell::from(c.clean_symbol().to_string()).style(
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Cell::from(c.name.clone()),
-                Cell::from(format_rate(c.rate, &c.base_currency)).style(Style::default().fg(Color::Yellow)),
-                Cell::from(format!("{}{:.2}%", change_prefix, c.change_percent))
-                    .style(Style::default().fg(change_color).add_modifier(Modifier::BOLD)),
+                Cell::from(format_rate(c.rate, &c.base_currency))
+                    .style(Style::default().fg(Color::Yellow)),
+                Cell::from(format!("{}{:.2}%", change_prefix, c.change_percent)).style(
+                    Style::default()
+                        .fg(change_color)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Cell::from(range_str).style(Style::default().fg(Color::DarkGray)),
             ];
             Row::new(cells).height(1)
@@ -86,15 +127,27 @@ pub fn render_currencies_table(frame: &mut Frame, app: &mut App, area: Rect, is_
     };
 
     let border_style = if is_focused {
-        Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD)
     } else {
         Style::default().fg(Color::DarkGray)
     };
 
     let block = Block::default()
         .title(title)
-        .title_style(if is_focused { Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::White) })
-        .borders(if is_maximized { Borders::NONE } else { Borders::ALL })
+        .title_style(if is_focused {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        })
+        .borders(if is_maximized {
+            Borders::NONE
+        } else {
+            Borders::ALL
+        })
         .border_style(border_style);
 
     let table = Table::new(

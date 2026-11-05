@@ -13,11 +13,11 @@ use constituents_table::render_constituents_table;
 use dashboard::{render_dashboard, render_maximized};
 use footer::render_footer;
 use header::render_header;
-use trend_modal::render_trend_modal;
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     Frame,
 };
+use trend_modal::render_trend_modal;
 
 pub fn draw(frame: &mut Frame, app: &mut App) {
     let chunks = Layout::default()

@@ -1,6 +1,8 @@
 use crate::model::{TimeRange, TrendPoint};
 use crate::provider::mock::MockMarketEngine;
-use crate::provider::yahoo::{create_http_client, fetch_historical_trend, fetch_quotes_batch, QuoteUpdate};
+use crate::provider::yahoo::{
+    create_http_client, fetch_historical_trend, fetch_quotes_batch, QuoteUpdate,
+};
 use std::time::Duration;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time::interval;
@@ -130,7 +132,8 @@ impl MarketWorker {
     async fn do_fetch(&mut self, http_client: Option<&reqwest::Client>) {
         if let Some((ref index_id, ref symbols)) = self.active_constituents.clone() {
             // In constituent view: fetch active constituent stocks on-demand
-            self.fetch_active_constituents(index_id, symbols, http_client).await;
+            self.fetch_active_constituents(index_id, symbols, http_client)
+                .await;
         } else {
             // In dashboard view: fetch symbols across all 4 asset classes
             self.fetch_dashboard(http_client).await;
@@ -165,22 +168,37 @@ impl MarketWorker {
                 }
 
                 if !index_quotes.is_empty() {
-                    let _ = self.tx_evt.send(WorkerEvent::IndicesUpdated(index_quotes)).await;
+                    let _ = self
+                        .tx_evt
+                        .send(WorkerEvent::IndicesUpdated(index_quotes))
+                        .await;
                 }
                 if !stock_quotes.is_empty() {
-                    let _ = self.tx_evt.send(WorkerEvent::TopStocksUpdated(stock_quotes)).await;
+                    let _ = self
+                        .tx_evt
+                        .send(WorkerEvent::TopStocksUpdated(stock_quotes))
+                        .await;
                 }
                 if !currency_quotes.is_empty() {
-                    let _ = self.tx_evt.send(WorkerEvent::CurrenciesUpdated(currency_quotes)).await;
+                    let _ = self
+                        .tx_evt
+                        .send(WorkerEvent::CurrenciesUpdated(currency_quotes))
+                        .await;
                 }
                 if !futures_quotes.is_empty() {
-                    let _ = self.tx_evt.send(WorkerEvent::FuturesUpdated(futures_quotes)).await;
+                    let _ = self
+                        .tx_evt
+                        .send(WorkerEvent::FuturesUpdated(futures_quotes))
+                        .await;
                 }
 
-                let _ = self.tx_evt.send(WorkerEvent::FetchStatus {
-                    is_live: true,
-                    status_message: "Live (Yahoo Finance)".to_string(),
-                }).await;
+                let _ = self
+                    .tx_evt
+                    .send(WorkerEvent::FetchStatus {
+                        is_live: true,
+                        status_message: "Live (Yahoo Finance)".to_string(),
+                    })
+                    .await;
                 return;
             }
         }
@@ -191,33 +209,52 @@ impl MarketWorker {
         for sym in &index_symbols {
             sim_indices.push(self.create_simulated_quote(sym));
         }
-        let _ = self.tx_evt.send(WorkerEvent::IndicesUpdated(sim_indices)).await;
+        let _ = self
+            .tx_evt
+            .send(WorkerEvent::IndicesUpdated(sim_indices))
+            .await;
 
         let stock_symbols = self.stock_symbols.clone();
         let mut sim_stocks = Vec::new();
         for sym in &stock_symbols {
             sim_stocks.push(self.create_simulated_quote(sym));
         }
-        let _ = self.tx_evt.send(WorkerEvent::TopStocksUpdated(sim_stocks)).await;
+        let _ = self
+            .tx_evt
+            .send(WorkerEvent::TopStocksUpdated(sim_stocks))
+            .await;
 
         let currency_symbols = self.currency_symbols.clone();
         let mut sim_currencies = Vec::new();
         for sym in &currency_symbols {
             sim_currencies.push(self.create_simulated_quote(sym));
         }
-        let _ = self.tx_evt.send(WorkerEvent::CurrenciesUpdated(sim_currencies)).await;
+        let _ = self
+            .tx_evt
+            .send(WorkerEvent::CurrenciesUpdated(sim_currencies))
+            .await;
 
         let futures_symbols = self.futures_symbols.clone();
         let mut sim_futures = Vec::new();
         for sym in &futures_symbols {
             sim_futures.push(self.create_simulated_quote(sym));
         }
-        let _ = self.tx_evt.send(WorkerEvent::FuturesUpdated(sim_futures)).await;
+        let _ = self
+            .tx_evt
+            .send(WorkerEvent::FuturesUpdated(sim_futures))
+            .await;
 
-        let _ = self.tx_evt.send(WorkerEvent::FetchStatus {
-            is_live: false,
-            status_message: if self.demo_mode { "Demo Mode".to_string() } else { "Offline (Simulated)".to_string() },
-        }).await;
+        let _ = self
+            .tx_evt
+            .send(WorkerEvent::FetchStatus {
+                is_live: false,
+                status_message: if self.demo_mode {
+                    "Demo Mode".to_string()
+                } else {
+                    "Offline (Simulated)".to_string()
+                },
+            })
+            .await;
     }
 
     async fn fetch_active_constituents(
@@ -229,14 +266,20 @@ impl MarketWorker {
         if let Some(client) = http_client {
             let quotes = fetch_quotes_batch(client, symbols, 12).await;
             if !quotes.is_empty() {
-                let _ = self.tx_evt.send(WorkerEvent::StocksUpdated {
-                    index_id: index_id.to_string(),
-                    quotes,
-                }).await;
-                let _ = self.tx_evt.send(WorkerEvent::FetchStatus {
-                    is_live: true,
-                    status_message: "Live (Yahoo Finance)".to_string(),
-                }).await;
+                let _ = self
+                    .tx_evt
+                    .send(WorkerEvent::StocksUpdated {
+                        index_id: index_id.to_string(),
+                        quotes,
+                    })
+                    .await;
+                let _ = self
+                    .tx_evt
+                    .send(WorkerEvent::FetchStatus {
+                        is_live: true,
+                        status_message: "Live (Yahoo Finance)".to_string(),
+                    })
+                    .await;
                 return;
             }
         }
@@ -246,14 +289,24 @@ impl MarketWorker {
         for sym in symbols {
             simulated.push(self.create_simulated_quote(sym));
         }
-        let _ = self.tx_evt.send(WorkerEvent::StocksUpdated {
-            index_id: index_id.to_string(),
-            quotes: simulated,
-        }).await;
-        let _ = self.tx_evt.send(WorkerEvent::FetchStatus {
-            is_live: false,
-            status_message: if self.demo_mode { "Demo Mode".to_string() } else { "Offline (Simulated)".to_string() },
-        }).await;
+        let _ = self
+            .tx_evt
+            .send(WorkerEvent::StocksUpdated {
+                index_id: index_id.to_string(),
+                quotes: simulated,
+            })
+            .await;
+        let _ = self
+            .tx_evt
+            .send(WorkerEvent::FetchStatus {
+                is_live: false,
+                status_message: if self.demo_mode {
+                    "Demo Mode".to_string()
+                } else {
+                    "Offline (Simulated)".to_string()
+                },
+            })
+            .await;
     }
 
     fn create_simulated_quote(&mut self, symbol: &str) -> QuoteUpdate {
@@ -292,23 +345,31 @@ impl MarketWorker {
     ) {
         if let Some(client) = http_client {
             if let Ok(points) = fetch_historical_trend(client, symbol, range, offset_secs).await {
-                let _ = self.tx_evt.send(WorkerEvent::TrendDataReceived {
-                    symbol: symbol.to_string(),
-                    range,
-                    offset_secs,
-                    points,
-                }).await;
+                let _ = self
+                    .tx_evt
+                    .send(WorkerEvent::TrendDataReceived {
+                        symbol: symbol.to_string(),
+                        range,
+                        offset_secs,
+                        points,
+                    })
+                    .await;
                 return;
             }
         }
 
         // Fallback or demo simulation
-        let points = self.mock_engine.generate_trend(current_price, range, offset_secs);
-        let _ = self.tx_evt.send(WorkerEvent::TrendDataReceived {
-            symbol: symbol.to_string(),
-            range,
-            offset_secs,
-            points,
-        }).await;
+        let points = self
+            .mock_engine
+            .generate_trend(current_price, range, offset_secs);
+        let _ = self
+            .tx_evt
+            .send(WorkerEvent::TrendDataReceived {
+                symbol: symbol.to_string(),
+                range,
+                offset_secs,
+                points,
+            })
+            .await;
     }
 }

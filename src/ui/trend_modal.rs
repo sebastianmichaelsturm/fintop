@@ -25,12 +25,19 @@ pub fn render_trend_modal(frame: &mut Frame, trend: &TrendState, area: Rect) {
         Span::styled(" ", Style::default()),
         Span::styled(
             &trend.symbol,
-            Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
         ),
-        Span::styled(format!(" — {} — ", trend.name), Style::default().fg(Color::White)),
+        Span::styled(
+            format!(" — {} — ", trend.name),
+            Style::default().fg(Color::White),
+        ),
         Span::styled(
             format!("[{} Trend]", trend.time_range.as_str()),
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
         ),
     ];
 
@@ -44,7 +51,9 @@ pub fn render_trend_modal(frame: &mut Frame, trend: &TrendState, area: Rect) {
         };
         title_spans.push(Span::styled(
             format!(" [Shifted: {} in past]", time_str),
-            Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Magenta)
+                .add_modifier(Modifier::BOLD),
         ));
     }
     title_spans.push(Span::styled(" ", Style::default()));
@@ -70,7 +79,15 @@ pub fn render_trend_modal(frame: &mut Frame, trend: &TrendState, area: Rect) {
         ])
         .split(inner);
 
-    render_modal_header(frame, trend, change_abs, change_pct, change_color, change_prefix, chunks[0]);
+    render_modal_header(
+        frame,
+        trend,
+        change_abs,
+        change_pct,
+        change_color,
+        change_prefix,
+        chunks[0],
+    );
 
     render_modal_chart(frame, trend, change_color, chunks[1]);
 
@@ -107,7 +124,9 @@ fn render_modal_header(
         Span::styled(" Price: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
             curr_str,
-            Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled("   Period Return: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
@@ -115,7 +134,9 @@ fn render_modal_header(
                 "{}{:.2} ({}{:.2}%)",
                 change_prefix, change_abs, change_prefix, change_pct
             ),
-            Style::default().fg(change_color).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(change_color)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled("   Currency: ", Style::default().fg(Color::DarkGray)),
         Span::styled(&trend.currency, Style::default().fg(Color::Yellow)),
@@ -138,12 +159,16 @@ fn render_modal_header(
 
     // Line 3: Time Window Position & Step Size
     let step_lbl = trend.time_range.step_label();
-    let mut window_spans = vec![
-        Span::styled(" Time Window: ", Style::default().fg(Color::Cyan).bold()),
-    ];
+    let mut window_spans = vec![Span::styled(
+        " Time Window: ",
+        Style::default().fg(Color::Cyan).bold(),
+    )];
 
     if trend.window_offset_secs == 0 {
-        window_spans.push(Span::styled("[Latest / Realtime] ", Style::default().fg(Color::Green).bold()));
+        window_spans.push(Span::styled(
+            "[Latest / Realtime] ",
+            Style::default().fg(Color::Green).bold(),
+        ));
     } else {
         let days_ago = (-trend.window_offset_secs) / 86400;
         let hours_ago = (-trend.window_offset_secs) / 3600;
@@ -152,17 +177,32 @@ fn render_modal_header(
         } else {
             format!("-{}h in past", hours_ago)
         };
-        window_spans.push(Span::styled(format!("[{}] ", time_str), Style::default().fg(Color::Magenta).bold()));
-        window_spans.push(Span::styled("[0/End: Reset to Latest] ", Style::default().fg(Color::Yellow)));
+        window_spans.push(Span::styled(
+            format!("[{}] ", time_str),
+            Style::default().fg(Color::Magenta).bold(),
+        ));
+        window_spans.push(Span::styled(
+            "[0/End: Reset to Latest] ",
+            Style::default().fg(Color::Yellow),
+        ));
     }
 
-    window_spans.push(Span::styled("Shift Step: ", Style::default().fg(Color::DarkGray)));
-    window_spans.push(Span::styled(format!("{} (h/l or ←/→)", step_lbl), Style::default().fg(Color::Yellow).bold()));
+    window_spans.push(Span::styled(
+        "Shift Step: ",
+        Style::default().fg(Color::DarkGray),
+    ));
+    window_spans.push(Span::styled(
+        format!("{} (h/l or ←/→)", step_lbl),
+        Style::default().fg(Color::Yellow).bold(),
+    ));
 
     lines.push(Line::from(window_spans));
 
     // Line 4: Timeframe Buttons
-    let mut tf_spans = vec![Span::styled(" Timeframe: ", Style::default().fg(Color::DarkGray))];
+    let mut tf_spans = vec![Span::styled(
+        " Timeframe: ",
+        Style::default().fg(Color::DarkGray),
+    )];
     for (idx, r) in TimeRange::ALL.iter().enumerate() {
         let key_num = idx + 1;
         if *r == trend.time_range {
@@ -183,7 +223,9 @@ fn render_modal_header(
     if trend.is_loading {
         tf_spans.push(Span::styled(
             " ⟳ Loading data...",
-            Style::default().fg(Color::Yellow).add_modifier(Modifier::ITALIC),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::ITALIC),
         ));
     }
     lines.push(Line::from(tf_spans));
@@ -192,12 +234,7 @@ fn render_modal_header(
     frame.render_widget(paragraph, area);
 }
 
-fn render_modal_chart(
-    frame: &mut Frame,
-    trend: &TrendState,
-    line_color: Color,
-    area: Rect,
-) {
+fn render_modal_chart(frame: &mut Frame, trend: &TrendState, line_color: Color, area: Rect) {
     if trend.points.is_empty() {
         let msg = if trend.is_loading {
             "⟳ Fetching historical quotes from Yahoo Finance..."
@@ -258,7 +295,10 @@ fn render_modal_chart(
         .data(&data_coords);
 
     let x_axis = Axis::default()
-        .title(Span::styled("Timeline", Style::default().fg(Color::DarkGray)))
+        .title(Span::styled(
+            "Timeline",
+            Style::default().fg(Color::DarkGray),
+        ))
         .style(Style::default().fg(Color::DarkGray))
         .bounds(x_bounds)
         .labels(x_labels);
@@ -272,9 +312,7 @@ fn render_modal_chart(
         .bounds(y_bounds)
         .labels(y_labels);
 
-    let chart = Chart::new(vec![dataset])
-        .x_axis(x_axis)
-        .y_axis(y_axis);
+    let chart = Chart::new(vec![dataset]).x_axis(x_axis).y_axis(y_axis);
 
     frame.render_widget(chart, area);
 }
@@ -283,9 +321,15 @@ fn render_modal_footer(frame: &mut Frame, trend: &TrendState, area: Rect) {
     let step_lbl = trend.time_range.step_label();
     let shortcuts = Line::from(vec![
         Span::styled(" [h/←] ", Style::default().fg(Color::Yellow).bold()),
-        Span::styled(format!("Shift -{} (Past)  ", step_lbl), Style::default().fg(Color::White)),
+        Span::styled(
+            format!("Shift -{} (Past)  ", step_lbl),
+            Style::default().fg(Color::White),
+        ),
         Span::styled("[l/→] ", Style::default().fg(Color::Yellow).bold()),
-        Span::styled(format!("Shift +{} (Future)  ", step_lbl), Style::default().fg(Color::White)),
+        Span::styled(
+            format!("Shift +{} (Future)  ", step_lbl),
+            Style::default().fg(Color::White),
+        ),
         Span::styled("[0/End] ", Style::default().fg(Color::Yellow).bold()),
         Span::styled("Latest  ", Style::default().fg(Color::White)),
         Span::styled("[t/Tab] ", Style::default().fg(Color::Yellow).bold()),
@@ -303,8 +347,7 @@ fn render_modal_footer(frame: &mut Frame, trend: &TrendState, area: Rect) {
 }
 
 fn format_point_time(ts: i64, range: TimeRange) -> String {
-    let dt = chrono::DateTime::from_timestamp(ts, 0)
-        .map(|utc| utc.with_timezone(&Local));
+    let dt = chrono::DateTime::from_timestamp(ts, 0).map(|utc| utc.with_timezone(&Local));
 
     if let Some(local) = dt {
         match range {

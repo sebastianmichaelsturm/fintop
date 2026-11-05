@@ -66,12 +66,7 @@ pub fn render_dashboard(frame: &mut Frame, app: &mut App, area: Rect) {
     );
 }
 
-pub fn render_maximized(
-    frame: &mut Frame,
-    app: &mut App,
-    section: DashboardSection,
-    area: Rect,
-) {
+pub fn render_maximized(frame: &mut Frame, app: &mut App, section: DashboardSection, area: Rect) {
     match section {
         DashboardSection::Indices => {
             render_indices_table(frame, app, area, true, true);

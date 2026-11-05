@@ -50,7 +50,10 @@ impl TrendState {
     }
 
     pub fn period_close(&self) -> Option<f64> {
-        self.points.last().map(|p| p.price).or(Some(self.current_price))
+        self.points
+            .last()
+            .map(|p| p.price)
+            .or(Some(self.current_price))
     }
 
     pub fn period_min(&self) -> Option<f64> {
@@ -201,7 +204,10 @@ impl App {
                     points,
                 } => {
                     if let Some(ref mut trend) = self.trend_state {
-                        if trend.symbol == symbol && trend.time_range == range && trend.window_offset_secs == offset_secs {
+                        if trend.symbol == symbol
+                            && trend.time_range == range
+                            && trend.window_offset_secs == offset_secs
+                        {
                             trend.points = points;
                             trend.is_loading = false;
                         }
@@ -233,7 +239,11 @@ impl App {
 
     fn apply_top_stocks_quotes(&mut self, quotes: Vec<QuoteUpdate>) {
         for quote in quotes {
-            if let Some(stock) = self.top_stocks.iter_mut().find(|s| s.symbol == quote.symbol) {
+            if let Some(stock) = self
+                .top_stocks
+                .iter_mut()
+                .find(|s| s.symbol == quote.symbol)
+            {
                 stock.current_price = quote.price;
                 stock.change = quote.change;
                 stock.change_percent = quote.change_percent;
@@ -243,7 +253,8 @@ impl App {
                     stock.volume = quote.volume;
                 }
                 if stock.shares_outstanding > 0 {
-                    stock.market_cap = (stock.current_price * stock.shares_outstanding as f64).round() as u64;
+                    stock.market_cap =
+                        (stock.current_price * stock.shares_outstanding as f64).round() as u64;
                 }
             }
         }
@@ -252,7 +263,11 @@ impl App {
 
     fn apply_currencies_quotes(&mut self, quotes: Vec<QuoteUpdate>) {
         for quote in quotes {
-            if let Some(c) = self.currencies.iter_mut().find(|c| c.symbol == quote.symbol) {
+            if let Some(c) = self
+                .currencies
+                .iter_mut()
+                .find(|c| c.symbol == quote.symbol)
+            {
                 c.rate = quote.price;
                 c.change = quote.change;
                 c.change_percent = quote.change_percent;
@@ -279,7 +294,11 @@ impl App {
     fn apply_stocks_quotes(&mut self, index_id: &str, quotes: Vec<QuoteUpdate>) {
         if let Some(idx) = self.indices.iter_mut().find(|i| i.id == index_id) {
             for quote in quotes {
-                if let Some(stock) = idx.constituents.iter_mut().find(|s| s.symbol == quote.symbol) {
+                if let Some(stock) = idx
+                    .constituents
+                    .iter_mut()
+                    .find(|s| s.symbol == quote.symbol)
+                {
                     stock.current_price = quote.price;
                     stock.change = quote.change;
                     stock.change_percent = quote.change_percent;
@@ -289,7 +308,8 @@ impl App {
                         stock.volume = quote.volume;
                     }
                     if stock.shares_outstanding > 0 {
-                        stock.market_cap = (stock.current_price * stock.shares_outstanding as f64).round() as u64;
+                        stock.market_cap =
+                            (stock.current_price * stock.shares_outstanding as f64).round() as u64;
                     }
                 }
             }
@@ -372,10 +392,9 @@ impl App {
             };
 
             if needs_fetch && !self.is_paused {
-                let _ = self.tx_worker.try_send(WorkerCommand::PollConstituents {
-                    index_id,
-                    symbols,
-                });
+                let _ = self
+                    .tx_worker
+                    .try_send(WorkerCommand::PollConstituents { index_id, symbols });
             }
         }
     }
@@ -484,28 +503,32 @@ impl App {
                 let count = self.sorted_indices().len();
                 if count > 0 {
                     let current = self.indices_table_state.selected().unwrap_or(0);
-                    self.indices_table_state.select(Some((current + 1).min(count - 1)));
+                    self.indices_table_state
+                        .select(Some((current + 1).min(count - 1)));
                 }
             }
             DashboardSection::Stocks => {
                 let count = self.sorted_top_stocks().len();
                 if count > 0 {
                     let current = self.stocks_table_state.selected().unwrap_or(0);
-                    self.stocks_table_state.select(Some((current + 1).min(count - 1)));
+                    self.stocks_table_state
+                        .select(Some((current + 1).min(count - 1)));
                 }
             }
             DashboardSection::Currencies => {
                 let count = self.sorted_currencies().len();
                 if count > 0 {
                     let current = self.currencies_table_state.selected().unwrap_or(0);
-                    self.currencies_table_state.select(Some((current + 1).min(count - 1)));
+                    self.currencies_table_state
+                        .select(Some((current + 1).min(count - 1)));
                 }
             }
             DashboardSection::Futures => {
                 let count = self.sorted_futures().len();
                 if count > 0 {
                     let current = self.futures_table_state.selected().unwrap_or(0);
-                    self.futures_table_state.select(Some((current + 1).min(count - 1)));
+                    self.futures_table_state
+                        .select(Some((current + 1).min(count - 1)));
                 }
             }
         }
@@ -531,19 +554,23 @@ impl App {
         match section {
             DashboardSection::Indices => {
                 let current = self.indices_table_state.selected().unwrap_or(0);
-                self.indices_table_state.select(Some(current.saturating_sub(1)));
+                self.indices_table_state
+                    .select(Some(current.saturating_sub(1)));
             }
             DashboardSection::Stocks => {
                 let current = self.stocks_table_state.selected().unwrap_or(0);
-                self.stocks_table_state.select(Some(current.saturating_sub(1)));
+                self.stocks_table_state
+                    .select(Some(current.saturating_sub(1)));
             }
             DashboardSection::Currencies => {
                 let current = self.currencies_table_state.selected().unwrap_or(0);
-                self.currencies_table_state.select(Some(current.saturating_sub(1)));
+                self.currencies_table_state
+                    .select(Some(current.saturating_sub(1)));
             }
             DashboardSection::Futures => {
                 let current = self.futures_table_state.selected().unwrap_or(0);
-                self.futures_table_state.select(Some(current.saturating_sub(1)));
+                self.futures_table_state
+                    .select(Some(current.saturating_sub(1)));
             }
         }
     }
@@ -558,7 +585,9 @@ impl App {
 
         list.sort_by(|a, b| {
             let ordering = match self.sort_column_indices {
-                SortColumn::DefaultRegion => a.region.cmp(&b.region).then_with(|| a.name.cmp(&b.name)),
+                SortColumn::DefaultRegion => {
+                    a.region.cmp(&b.region).then_with(|| a.name.cmp(&b.name))
+                }
                 SortColumn::Price => a.current_price.total_cmp(&b.current_price),
                 SortColumn::ChangePercent => a.change_percent.total_cmp(&b.change_percent),
                 SortColumn::ChangeAbsolute => a.change.total_cmp(&b.change),

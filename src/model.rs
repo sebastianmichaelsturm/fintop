@@ -162,8 +162,8 @@ pub struct TrendPoint {
 #[derive(Debug, Clone)]
 pub struct MarketIndex {
     pub id: String,
-    pub symbol: String,          // API ticker symbol (e.g. "^GSPC")
-    pub display_symbol: String,  // Clean UI display symbol (e.g. "SPX" / "DAX")
+    pub symbol: String,         // API ticker symbol (e.g. "^GSPC")
+    pub display_symbol: String, // Clean UI display symbol (e.g. "SPX" / "DAX")
     pub name: String,
     pub region: Region,
     pub currency: String,
@@ -277,7 +277,7 @@ pub struct FuturesQuote {
     pub change_percent: f64,
     pub day_high: f64,
     pub day_low: f64,
-    pub unit: String,           // "$/oz", "$/bbl", "pts"
+    pub unit: String, // "$/oz", "$/bbl", "pts"
 }
 
 impl FuturesQuote {

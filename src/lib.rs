@@ -127,7 +127,10 @@ fn run_loop<B: ratatui::backend::Backend>(
                             KeyCode::Char('l') | KeyCode::Right => {
                                 app.shift_window_forward();
                             }
-                            KeyCode::Home | KeyCode::End | KeyCode::Char('0') | KeyCode::Char('$') => {
+                            KeyCode::Home
+                            | KeyCode::End
+                            | KeyCode::Char('0')
+                            | KeyCode::Char('$') => {
                                 app.reset_window_offset();
                             }
                             KeyCode::Tab | KeyCode::Char('t') => {
@@ -165,30 +168,26 @@ fn run_loop<B: ratatui::backend::Backend>(
                         }
                     } else {
                         match key.code {
-                            KeyCode::Char('q') => {
-                                match app.view_mode {
-                                    ViewMode::Constituents { .. } => {
-                                        app.exit_index();
-                                    }
-                                    ViewMode::Maximized(_) => {
-                                        app.toggle_maximize();
-                                    }
-                                    ViewMode::Dashboard => {
-                                        return Ok(());
-                                    }
+                            KeyCode::Char('q') => match app.view_mode {
+                                ViewMode::Constituents { .. } => {
+                                    app.exit_index();
                                 }
-                            }
-                            KeyCode::Esc | KeyCode::Backspace => {
-                                match app.view_mode {
-                                    ViewMode::Constituents { .. } => {
-                                        app.exit_index();
-                                    }
-                                    ViewMode::Maximized(_) => {
-                                        app.toggle_maximize();
-                                    }
-                                    ViewMode::Dashboard => {}
+                                ViewMode::Maximized(_) => {
+                                    app.toggle_maximize();
                                 }
-                            }
+                                ViewMode::Dashboard => {
+                                    return Ok(());
+                                }
+                            },
+                            KeyCode::Esc | KeyCode::Backspace => match app.view_mode {
+                                ViewMode::Constituents { .. } => {
+                                    app.exit_index();
+                                }
+                                ViewMode::Maximized(_) => {
+                                    app.toggle_maximize();
+                                }
+                                ViewMode::Dashboard => {}
+                            },
                             KeyCode::Tab => {
                                 if app.view_mode == ViewMode::Dashboard {
                                     app.cycle_section();
@@ -201,7 +200,9 @@ fn run_loop<B: ratatui::backend::Backend>(
                             }
                             KeyCode::Char(c @ '1'..='4') => {
                                 if app.view_mode == ViewMode::Dashboard {
-                                    if let Some(sec) = model::DashboardSection::from_index((c as u8 - b'1') as usize) {
+                                    if let Some(sec) = model::DashboardSection::from_index(
+                                        (c as u8 - b'1') as usize,
+                                    ) {
                                         app.set_section(sec);
                                     }
                                 }
@@ -209,27 +210,25 @@ fn run_loop<B: ratatui::backend::Backend>(
                             KeyCode::Char('m') | KeyCode::Char('f') => {
                                 app.toggle_maximize();
                             }
-                            KeyCode::Enter => {
-                                match app.view_mode {
-                                    ViewMode::Dashboard => {
-                                        if app.active_section == model::DashboardSection::Indices {
-                                            app.enter_index();
-                                        } else {
-                                            app.open_trend_window();
-                                        }
-                                    }
-                                    ViewMode::Maximized(sec) => {
-                                        if sec == model::DashboardSection::Indices {
-                                            app.enter_index();
-                                        } else {
-                                            app.open_trend_window();
-                                        }
-                                    }
-                                    ViewMode::Constituents { .. } => {
+                            KeyCode::Enter => match app.view_mode {
+                                ViewMode::Dashboard => {
+                                    if app.active_section == model::DashboardSection::Indices {
+                                        app.enter_index();
+                                    } else {
                                         app.open_trend_window();
                                     }
                                 }
-                            }
+                                ViewMode::Maximized(sec) => {
+                                    if sec == model::DashboardSection::Indices {
+                                        app.enter_index();
+                                    } else {
+                                        app.open_trend_window();
+                                    }
+                                }
+                                ViewMode::Constituents { .. } => {
+                                    app.open_trend_window();
+                                }
+                            },
                             KeyCode::Char('/') => {
                                 app.is_filtering = true;
                             }

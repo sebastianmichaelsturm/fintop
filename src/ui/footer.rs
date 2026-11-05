@@ -8,15 +8,30 @@ use ratatui::{
 };
 
 pub fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
-    let key_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
+    let key_style = Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD);
     let desc_style = Style::default().fg(Color::White);
 
     let line = if app.is_filtering {
         Line::from(vec![
-            Span::styled("Filter: ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-            Span::styled(&app.filter_query, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "Filter: ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                &app.filter_query,
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("█", Style::default().fg(Color::Yellow)),
-            Span::styled("  (Enter: apply, Esc: clear/exit)", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                "  (Enter: apply, Esc: clear/exit)",
+                Style::default().fg(Color::DarkGray),
+            ),
         ])
     } else {
         match app.view_mode {
@@ -36,7 +51,14 @@ pub fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
                 Span::styled("[r]", key_style),
                 Span::styled(" Refresh  ", desc_style),
                 Span::styled("[Space]", key_style),
-                Span::styled(if app.is_paused { " Resume  " } else { " Pause  " }, desc_style),
+                Span::styled(
+                    if app.is_paused {
+                        " Resume  "
+                    } else {
+                        " Pause  "
+                    },
+                    desc_style,
+                ),
                 Span::styled("[↑/↓, j/k]", key_style),
                 Span::styled(" Nav  ", desc_style),
                 Span::styled("[q]", key_style),
@@ -56,7 +78,14 @@ pub fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
                 Span::styled("[r]", key_style),
                 Span::styled(" Refresh  ", desc_style),
                 Span::styled("[Space]", key_style),
-                Span::styled(if app.is_paused { " Resume  " } else { " Pause  " }, desc_style),
+                Span::styled(
+                    if app.is_paused {
+                        " Resume  "
+                    } else {
+                        " Pause  "
+                    },
+                    desc_style,
+                ),
                 Span::styled("[↑/↓, j/k]", key_style),
                 Span::styled(" Nav  ", desc_style),
                 Span::styled("[q]", key_style),
@@ -76,7 +105,14 @@ pub fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
                 Span::styled("[r]", key_style),
                 Span::styled(" Refresh  ", desc_style),
                 Span::styled("[Space]", key_style),
-                Span::styled(if app.is_paused { " Resume  " } else { " Pause  " }, desc_style),
+                Span::styled(
+                    if app.is_paused {
+                        " Resume  "
+                    } else {
+                        " Pause  "
+                    },
+                    desc_style,
+                ),
                 Span::styled("[↑/↓, j/k]", key_style),
                 Span::styled(" Nav", desc_style),
             ]),

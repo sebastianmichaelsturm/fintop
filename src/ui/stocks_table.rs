@@ -7,44 +7,74 @@ use ratatui::{
     Frame,
 };
 
-pub fn render_stocks_table(frame: &mut Frame, app: &mut App, area: Rect, is_focused: bool, is_maximized: bool) {
-    let active_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
-    let default_style = Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD);
+pub fn render_stocks_table(
+    frame: &mut Frame,
+    app: &mut App,
+    area: Rect,
+    is_focused: bool,
+    is_maximized: bool,
+) {
+    let active_style = Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD);
+    let default_style = Style::default()
+        .fg(Color::Cyan)
+        .add_modifier(Modifier::BOLD);
 
     let symbol_label = if app.sort_column_stocks == SortColumn::Symbol {
         format!("Symbol {}", app.sort_direction_stocks.indicator())
     } else {
         "Symbol".to_string()
     };
-    let symbol_style = if app.sort_column_stocks == SortColumn::Symbol { active_style } else { default_style };
+    let symbol_style = if app.sort_column_stocks == SortColumn::Symbol {
+        active_style
+    } else {
+        default_style
+    };
 
     let name_label = if app.sort_column_stocks == SortColumn::Name {
         format!("Name {}", app.sort_direction_stocks.indicator())
     } else {
         "Name".to_string()
     };
-    let name_style = if app.sort_column_stocks == SortColumn::Name { active_style } else { default_style };
+    let name_style = if app.sort_column_stocks == SortColumn::Name {
+        active_style
+    } else {
+        default_style
+    };
 
     let price_label = if app.sort_column_stocks == SortColumn::Price {
         format!("Price {}", app.sort_direction_stocks.indicator())
     } else {
         "Price".to_string()
     };
-    let price_style = if app.sort_column_stocks == SortColumn::Price { active_style } else { default_style };
+    let price_style = if app.sort_column_stocks == SortColumn::Price {
+        active_style
+    } else {
+        default_style
+    };
 
     let pct_label = if app.sort_column_stocks == SortColumn::ChangePercent {
         format!("Chg % {}", app.sort_direction_stocks.indicator())
     } else {
         "Chg %".to_string()
     };
-    let pct_style = if app.sort_column_stocks == SortColumn::ChangePercent { active_style } else { default_style };
+    let pct_style = if app.sort_column_stocks == SortColumn::ChangePercent {
+        active_style
+    } else {
+        default_style
+    };
 
     let cap_label = if app.sort_column_stocks == SortColumn::MarketCap {
         format!("Mkt Cap {}", app.sort_direction_stocks.indicator())
     } else {
         "Mkt Cap".to_string()
     };
-    let cap_style = if app.sort_column_stocks == SortColumn::MarketCap { active_style } else { default_style };
+    let cap_style = if app.sort_column_stocks == SortColumn::MarketCap {
+        active_style
+    } else {
+        default_style
+    };
 
     let header_cells = vec![
         Cell::from(symbol_label).style(symbol_style),
@@ -69,11 +99,19 @@ pub fn render_stocks_table(frame: &mut Frame, app: &mut App, area: Rect, is_focu
             };
 
             let cells = vec![
-                Cell::from(stock.symbol.clone()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                Cell::from(stock.symbol.clone()).style(
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Cell::from(stock.name.clone()),
-                Cell::from(format_price(stock.current_price, &stock.currency)).style(Style::default().fg(Color::Yellow)),
-                Cell::from(format!("{}{:.2}%", change_prefix, stock.change_percent))
-                    .style(Style::default().fg(change_color).add_modifier(Modifier::BOLD)),
+                Cell::from(format_price(stock.current_price, &stock.currency))
+                    .style(Style::default().fg(Color::Yellow)),
+                Cell::from(format!("{}{:.2}%", change_prefix, stock.change_percent)).style(
+                    Style::default()
+                        .fg(change_color)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Cell::from(format_market_cap(stock.market_cap, &stock.currency))
                     .style(Style::default().fg(Color::LightCyan)),
             ];
@@ -88,15 +126,27 @@ pub fn render_stocks_table(frame: &mut Frame, app: &mut App, area: Rect, is_focu
     };
 
     let border_style = if is_focused {
-        Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD)
     } else {
         Style::default().fg(Color::DarkGray)
     };
 
     let block = Block::default()
         .title(title)
-        .title_style(if is_focused { Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::White) })
-        .borders(if is_maximized { Borders::NONE } else { Borders::ALL })
+        .title_style(if is_focused {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        })
+        .borders(if is_maximized {
+            Borders::NONE
+        } else {
+            Borders::ALL
+        })
         .border_style(border_style);
 
     let table = Table::new(

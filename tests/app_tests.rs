@@ -50,7 +50,11 @@ fn test_indices_region_sorting() {
 
     let mut last_region = Region::UnitedStates;
     for idx in &sorted {
-        assert!(idx.region >= last_region, "Index {:?} region out of order", idx.name);
+        assert!(
+            idx.region >= last_region,
+            "Index {:?} region out of order",
+            idx.name
+        );
         last_region = idx.region;
     }
 }
@@ -88,8 +92,16 @@ fn test_clean_symbol_no_caret() {
     let indices = get_default_indices();
     for idx in &indices {
         let clean = idx.clean_symbol();
-        assert!(!clean.starts_with('^'), "Symbol '{}' should not start with '^'", clean);
-        assert!(!clean.is_empty(), "Clean symbol for {} should not be empty", idx.name);
+        assert!(
+            !clean.starts_with('^'),
+            "Symbol '{}' should not start with '^'",
+            clean
+        );
+        assert!(
+            !clean.is_empty(),
+            "Clean symbol for {} should not be empty",
+            idx.name
+        );
     }
 
     // Specific ticker checks
@@ -131,10 +143,21 @@ fn test_clean_symbol_no_caret() {
 fn test_nvidia_market_cap_and_dynamic_update() {
     let indices = get_default_indices();
     let sp500 = indices.iter().find(|i| i.id == "sp500").unwrap();
-    let nvda = sp500.constituents.iter().find(|s| s.symbol == "NVDA").unwrap();
+    let nvda = sp500
+        .constituents
+        .iter()
+        .find(|s| s.symbol == "NVDA")
+        .unwrap();
 
-    assert!(nvda.market_cap >= 5_000_000_000_000, "Nvidia market cap should be >= $5.0T, got {}", nvda.market_cap);
-    assert!(nvda.shares_outstanding > 20_000_000_000, "Nvidia shares outstanding should be > 20B");
+    assert!(
+        nvda.market_cap >= 5_000_000_000_000,
+        "Nvidia market cap should be >= $5.0T, got {}",
+        nvda.market_cap
+    );
+    assert!(
+        nvda.shares_outstanding > 20_000_000_000,
+        "Nvidia shares outstanding should be > 20B"
+    );
 }
 
 #[test]
@@ -183,7 +206,11 @@ fn test_filter_matching() {
     assert!(matches_index(dax, "europe"));
     assert!(!matches_index(dax, "nonexistent"));
 
-    let sap = dax.constituents.iter().find(|s| s.symbol == "SAP.DE").unwrap();
+    let sap = dax
+        .constituents
+        .iter()
+        .find(|s| s.symbol == "SAP.DE")
+        .unwrap();
     assert!(matches_stock(sap, "sap"));
     assert!(matches_stock(sap, "SAP SE"));
     assert!(!matches_stock(sap, "tesla"));
@@ -194,41 +221,85 @@ fn test_constituent_roster_counts() {
     let indices = get_default_indices();
 
     let dax = indices.iter().find(|i| i.id == "dax40").unwrap();
-    assert_eq!(dax.constituents.len(), 40, "DAX 40 must have exactly 40 constituents");
+    assert_eq!(
+        dax.constituents.len(),
+        40,
+        "DAX 40 must have exactly 40 constituents"
+    );
 
     let dow = indices.iter().find(|i| i.id == "dowjones").unwrap();
-    assert_eq!(dow.constituents.len(), 30, "Dow Jones must have exactly 30 constituents");
+    assert_eq!(
+        dow.constituents.len(),
+        30,
+        "Dow Jones must have exactly 30 constituents"
+    );
 
     let stoxx50 = indices.iter().find(|i| i.id == "stoxx50").unwrap();
-    assert_eq!(stoxx50.constituents.len(), 50, "Euro Stoxx 50 must have exactly 50 constituents");
+    assert_eq!(
+        stoxx50.constituents.len(),
+        50,
+        "Euro Stoxx 50 must have exactly 50 constituents"
+    );
 
     let stoxx600 = indices.iter().find(|i| i.id == "stoxx600").unwrap();
-    assert_eq!(stoxx600.constituents.len(), 50, "Euro Stoxx 600 must have constituents populated");
+    assert_eq!(
+        stoxx600.constituents.len(),
+        50,
+        "Euro Stoxx 600 must have constituents populated"
+    );
     assert_eq!(stoxx600.clean_symbol(), "SXXP");
 
     let nasdaq = indices.iter().find(|i| i.id == "nasdaq100").unwrap();
-    assert_eq!(nasdaq.constituents.len(), 50, "Nasdaq sample constituents must be populated");
+    assert_eq!(
+        nasdaq.constituents.len(),
+        50,
+        "Nasdaq sample constituents must be populated"
+    );
 
     let vix = indices.iter().find(|i| i.id == "vix").unwrap();
     assert_eq!(vix.constituents.len(), 6, "VIX proxies must be populated");
 
     let smi = indices.iter().find(|i| i.id == "smi20").unwrap();
-    assert_eq!(smi.constituents.len(), 12, "SMI constituents must be populated");
+    assert_eq!(
+        smi.constituents.len(),
+        12,
+        "SMI constituents must be populated"
+    );
 
     let ssec = indices.iter().find(|i| i.id == "shanghai").unwrap();
-    assert_eq!(ssec.constituents.len(), 10, "Shanghai constituents must be populated");
+    assert_eq!(
+        ssec.constituents.len(),
+        10,
+        "Shanghai constituents must be populated"
+    );
 
     let kospi = indices.iter().find(|i| i.id == "kospi").unwrap();
-    assert_eq!(kospi.constituents.len(), 10, "KOSPI constituents must be populated");
+    assert_eq!(
+        kospi.constituents.len(),
+        10,
+        "KOSPI constituents must be populated"
+    );
 
     let tsx = indices.iter().find(|i| i.id == "tsx").unwrap();
-    assert_eq!(tsx.constituents.len(), 10, "TSX constituents must be populated");
+    assert_eq!(
+        tsx.constituents.len(),
+        10,
+        "TSX constituents must be populated"
+    );
 
     let bovespa = indices.iter().find(|i| i.id == "bovespa").unwrap();
-    assert_eq!(bovespa.constituents.len(), 10, "Bovespa constituents must be populated");
+    assert_eq!(
+        bovespa.constituents.len(),
+        10,
+        "Bovespa constituents must be populated"
+    );
 
     let ipc = indices.iter().find(|i| i.id == "ipcmexico").unwrap();
-    assert_eq!(ipc.constituents.len(), 10, "IPC Mexico constituents must be populated");
+    assert_eq!(
+        ipc.constituents.len(),
+        10,
+        "IPC Mexico constituents must be populated"
+    );
 }
 
 #[test]
@@ -264,7 +335,10 @@ fn test_mock_trend_generation() {
 
     // Timestamps must be sorted ascending
     for i in 0..points.len() - 1 {
-        assert!(points[i].timestamp < points[i + 1].timestamp, "Timestamps out of chronological order");
+        assert!(
+            points[i].timestamp < points[i + 1].timestamp,
+            "Timestamps out of chronological order"
+        );
         assert!(points[i].price > 0.0, "Price must be strictly positive");
     }
 
@@ -297,11 +371,17 @@ fn test_open_and_close_trend_modal() {
 
     // Cycle timeframe
     app.cycle_trend_range();
-    assert_eq!(app.trend_state.as_ref().unwrap().time_range, TimeRange::SixMonths);
+    assert_eq!(
+        app.trend_state.as_ref().unwrap().time_range,
+        TimeRange::SixMonths
+    );
 
     // Direct jump
     app.set_trend_range(TimeRange::OneDay);
-    assert_eq!(app.trend_state.as_ref().unwrap().time_range, TimeRange::OneDay);
+    assert_eq!(
+        app.trend_state.as_ref().unwrap().time_range,
+        TimeRange::OneDay
+    );
 
     // Close modal
     app.close_trend_window();
@@ -311,10 +391,22 @@ fn test_open_and_close_trend_modal() {
 #[test]
 fn test_trend_state_period_metrics() {
     let points = vec![
-        TrendPoint { timestamp: 1000, price: 100.0 },
-        TrendPoint { timestamp: 2000, price: 120.0 },
-        TrendPoint { timestamp: 3000, price: 90.0 },
-        TrendPoint { timestamp: 4000, price: 110.0 },
+        TrendPoint {
+            timestamp: 1000,
+            price: 100.0,
+        },
+        TrendPoint {
+            timestamp: 2000,
+            price: 120.0,
+        },
+        TrendPoint {
+            timestamp: 3000,
+            price: 90.0,
+        },
+        TrendPoint {
+            timestamp: 4000,
+            price: 110.0,
+        },
     ];
 
     let state = fintop::app::TrendState {
@@ -365,7 +457,9 @@ fn test_window_shift_navigation() {
 
     if let Ok(cmd) = rx_cmd.try_recv() {
         match cmd {
-            WorkerCommand::FetchTrend { offset_secs, range, .. } => {
+            WorkerCommand::FetchTrend {
+                offset_secs, range, ..
+            } => {
                 assert_eq!(offset_secs, -3600);
                 assert_eq!(range, TimeRange::OneDay);
             }
@@ -439,7 +533,9 @@ fn test_multi_currency_formatting() {
 
 #[test]
 fn test_default_datasets_populated() {
-    use fintop::provider::dataset::{get_default_currencies, get_default_futures, get_default_stocks};
+    use fintop::provider::dataset::{
+        get_default_currencies, get_default_futures, get_default_stocks,
+    };
 
     let stocks = get_default_stocks();
     assert_eq!(stocks.len(), 14, "Must contain 14 global benchmark stocks");
@@ -450,7 +546,11 @@ fn test_default_datasets_populated() {
     assert!(stocks.iter().any(|s| s.symbol == "SAP.DE"));
 
     let currencies = get_default_currencies();
-    assert_eq!(currencies.len(), 11, "Must contain 11 currency/crypto pairs");
+    assert_eq!(
+        currencies.len(),
+        11,
+        "Must contain 11 currency/crypto pairs"
+    );
     assert!(currencies.iter().any(|c| c.symbol == "EURUSD=X"));
     assert!(currencies.iter().any(|c| c.symbol == "USDJPY=X"));
     assert!(currencies.iter().any(|c| c.symbol == "BTC-USD"));
@@ -458,10 +558,18 @@ fn test_default_datasets_populated() {
 
     let futures = get_default_futures();
     assert_eq!(futures.len(), 11, "Must contain 11 futures contracts");
-    assert!(futures.iter().any(|f| f.symbol == "GC=F" && f.category == "Metals"));
-    assert!(futures.iter().any(|f| f.symbol == "CL=F" && f.category == "Energy"));
-    assert!(futures.iter().any(|f| f.symbol == "ES=F" && f.category == "Indices"));
-    assert!(futures.iter().any(|f| f.symbol == "ZN=F" && f.category == "Bonds"));
+    assert!(futures
+        .iter()
+        .any(|f| f.symbol == "GC=F" && f.category == "Metals"));
+    assert!(futures
+        .iter()
+        .any(|f| f.symbol == "CL=F" && f.category == "Energy"));
+    assert!(futures
+        .iter()
+        .any(|f| f.symbol == "ES=F" && f.category == "Indices"));
+    assert!(futures
+        .iter()
+        .any(|f| f.symbol == "ZN=F" && f.category == "Bonds"));
 }
 
 #[test]
@@ -712,7 +820,10 @@ fn test_toggle_maximize() {
     // Maximize Indices
     app.set_section(DashboardSection::Indices);
     app.toggle_maximize();
-    assert_eq!(app.view_mode, ViewMode::Maximized(DashboardSection::Indices));
+    assert_eq!(
+        app.view_mode,
+        ViewMode::Maximized(DashboardSection::Indices)
+    );
 
     // Toggle back
     app.toggle_maximize();
@@ -721,7 +832,10 @@ fn test_toggle_maximize() {
     // Maximize Futures
     app.set_section(DashboardSection::Futures);
     app.toggle_maximize();
-    assert_eq!(app.view_mode, ViewMode::Maximized(DashboardSection::Futures));
+    assert_eq!(
+        app.view_mode,
+        ViewMode::Maximized(DashboardSection::Futures)
+    );
 
     // Toggle back
     app.toggle_maximize();

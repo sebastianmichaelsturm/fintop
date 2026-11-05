@@ -14,7 +14,9 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
     let mut title_spans = vec![
         Span::styled(
             "fintop",
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::raw(" "),
     ];
@@ -27,12 +29,16 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
     } else if app.is_live {
         title_spans.push(Span::styled(
             "[LIVE]",
-            Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
         ));
     } else {
         title_spans.push(Span::styled(
             "[DEMO]",
-            Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
         ));
     }
 
@@ -41,7 +47,9 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
             title_spans.push(Span::raw(" — "));
             title_spans.push(Span::styled(
                 "Global Market Dashboard",
-                Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
             ));
             title_spans.push(Span::raw(" (Stocks • Indices • Currencies • Futures)"));
         }
@@ -49,7 +57,9 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
             title_spans.push(Span::raw(" — "));
             title_spans.push(Span::styled(
                 format!("[MAXIMIZED] {}", sec.title()),
-                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
             ));
         }
         ViewMode::Constituents { .. } => {
@@ -57,7 +67,9 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
                 title_spans.push(Span::raw(" — "));
                 title_spans.push(Span::styled(
                     format!("Index: {} ({})", idx.name, idx.clean_symbol()),
-                    Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD),
                 ));
                 title_spans.push(Span::raw(format!(
                     " — {} Constituents [Stock Currency: {}]",
@@ -122,30 +134,55 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
 
     let mut metrics_spans = vec![
         Span::raw("Indices: "),
-        Span::styled(format!("{}", app.indices.len()), Style::default().fg(Color::Green)),
+        Span::styled(
+            format!("{}", app.indices.len()),
+            Style::default().fg(Color::Green),
+        ),
         Span::raw("  |  Stocks: "),
-        Span::styled(format!("{}", app.top_stocks.len()), Style::default().fg(Color::Yellow)),
+        Span::styled(
+            format!("{}", app.top_stocks.len()),
+            Style::default().fg(Color::Yellow),
+        ),
         Span::raw("  |  Currencies: "),
-        Span::styled(format!("{}", app.currencies.len()), Style::default().fg(Color::Cyan)),
+        Span::styled(
+            format!("{}", app.currencies.len()),
+            Style::default().fg(Color::Cyan),
+        ),
         Span::raw("  |  Futures: "),
-        Span::styled(format!("{}", app.futures.len()), Style::default().fg(Color::Magenta)),
+        Span::styled(
+            format!("{}", app.futures.len()),
+            Style::default().fg(Color::Magenta),
+        ),
         Span::raw("  |  Sort: "),
-        Span::styled(active_sort_str, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            active_sort_str,
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ),
     ];
 
     if !app.filter_query.is_empty() {
         metrics_spans.push(Span::raw("  |  Filter: "));
         metrics_spans.push(Span::styled(
             format!("\"{}\"", app.filter_query),
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
         ));
     }
 
     metrics_spans.push(Span::raw("  |  Status: "));
-    metrics_spans.push(Span::styled(&app.status_message, Style::default().fg(Color::DarkGray)));
+    metrics_spans.push(Span::styled(
+        &app.status_message,
+        Style::default().fg(Color::DarkGray),
+    ));
 
     metrics_spans.push(Span::raw("  |  Uptime: "));
-    metrics_spans.push(Span::styled(uptime_str, Style::default().fg(Color::DarkGray)));
+    metrics_spans.push(Span::styled(
+        uptime_str,
+        Style::default().fg(Color::DarkGray),
+    ));
 
     if let Some(updated) = app.last_updated {
         metrics_spans.push(Span::raw("  |  Updated: "));

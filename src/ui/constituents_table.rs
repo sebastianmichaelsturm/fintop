@@ -8,57 +8,89 @@ use ratatui::{
 };
 
 pub fn render_constituents_table(frame: &mut Frame, app: &mut App, area: Rect) {
-    let active_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
-    let default_style = Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD);
+    let active_style = Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD);
+    let default_style = Style::default()
+        .fg(Color::Cyan)
+        .add_modifier(Modifier::BOLD);
 
     let symbol_label = if app.sort_column_stocks == SortColumn::Symbol {
         format!("Symbol {}", app.sort_direction_stocks.indicator())
     } else {
         "Symbol".to_string()
     };
-    let symbol_style = if app.sort_column_stocks == SortColumn::Symbol { active_style } else { default_style };
+    let symbol_style = if app.sort_column_stocks == SortColumn::Symbol {
+        active_style
+    } else {
+        default_style
+    };
 
     let name_label = if app.sort_column_stocks == SortColumn::Name {
         format!("Company Name {}", app.sort_direction_stocks.indicator())
     } else {
         "Company Name".to_string()
     };
-    let name_style = if app.sort_column_stocks == SortColumn::Name { active_style } else { default_style };
+    let name_style = if app.sort_column_stocks == SortColumn::Name {
+        active_style
+    } else {
+        default_style
+    };
 
     let mcap_label = if app.sort_column_stocks == SortColumn::MarketCap {
         format!("Market Cap {}", app.sort_direction_stocks.indicator())
     } else {
         "Market Cap".to_string()
     };
-    let mcap_style = if app.sort_column_stocks == SortColumn::MarketCap { active_style } else { default_style };
+    let mcap_style = if app.sort_column_stocks == SortColumn::MarketCap {
+        active_style
+    } else {
+        default_style
+    };
 
     let price_label = if app.sort_column_stocks == SortColumn::Price {
         format!("Price {}", app.sort_direction_stocks.indicator())
     } else {
         "Price".to_string()
     };
-    let price_style = if app.sort_column_stocks == SortColumn::Price { active_style } else { default_style };
+    let price_style = if app.sort_column_stocks == SortColumn::Price {
+        active_style
+    } else {
+        default_style
+    };
 
     let change_label = if app.sort_column_stocks == SortColumn::ChangeAbsolute {
         format!("Change {}", app.sort_direction_stocks.indicator())
     } else {
         "Change".to_string()
     };
-    let change_style = if app.sort_column_stocks == SortColumn::ChangeAbsolute { active_style } else { default_style };
+    let change_style = if app.sort_column_stocks == SortColumn::ChangeAbsolute {
+        active_style
+    } else {
+        default_style
+    };
 
     let pct_label = if app.sort_column_stocks == SortColumn::ChangePercent {
         format!("Change % {}", app.sort_direction_stocks.indicator())
     } else {
         "Change %".to_string()
     };
-    let pct_style = if app.sort_column_stocks == SortColumn::ChangePercent { active_style } else { default_style };
+    let pct_style = if app.sort_column_stocks == SortColumn::ChangePercent {
+        active_style
+    } else {
+        default_style
+    };
 
     let vol_label = if app.sort_column_stocks == SortColumn::Volume {
         format!("Volume {}", app.sort_direction_stocks.indicator())
     } else {
         "Volume".to_string()
     };
-    let vol_style = if app.sort_column_stocks == SortColumn::Volume { active_style } else { default_style };
+    let vol_style = if app.sort_column_stocks == SortColumn::Volume {
+        active_style
+    } else {
+        default_style
+    };
 
     let header_cells = vec![
         Cell::from(symbol_label).style(symbol_style),
@@ -87,16 +119,32 @@ pub fn render_constituents_table(frame: &mut Frame, app: &mut App, area: Rect) {
             };
 
             let cells = vec![
-                Cell::from(stock.symbol.clone()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                Cell::from(stock.symbol.clone()).style(
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Cell::from(stock.name.clone()),
-                Cell::from(format_market_cap(stock.market_cap, &stock.currency))
-                    .style(Style::default().fg(Color::LightGreen).add_modifier(Modifier::BOLD)),
-                Cell::from(format_price(stock.current_price, &stock.currency)).style(Style::default().fg(Color::Yellow)),
-                Cell::from(format!("{}{:.2}", change_prefix, stock.change)).style(Style::default().fg(change_color)),
-                Cell::from(format!("{}{:.2}%", change_prefix, stock.change_percent)).style(Style::default().fg(change_color).add_modifier(Modifier::BOLD)),
-                Cell::from(format_price(stock.day_high, &stock.currency)).style(Style::default().fg(Color::DarkGray)),
-                Cell::from(format_price(stock.day_low, &stock.currency)).style(Style::default().fg(Color::DarkGray)),
-                Cell::from(format_volume(stock.volume)).style(Style::default().fg(Color::LightCyan)),
+                Cell::from(format_market_cap(stock.market_cap, &stock.currency)).style(
+                    Style::default()
+                        .fg(Color::LightGreen)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Cell::from(format_price(stock.current_price, &stock.currency))
+                    .style(Style::default().fg(Color::Yellow)),
+                Cell::from(format!("{}{:.2}", change_prefix, stock.change))
+                    .style(Style::default().fg(change_color)),
+                Cell::from(format!("{}{:.2}%", change_prefix, stock.change_percent)).style(
+                    Style::default()
+                        .fg(change_color)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Cell::from(format_price(stock.day_high, &stock.currency))
+                    .style(Style::default().fg(Color::DarkGray)),
+                Cell::from(format_price(stock.day_low, &stock.currency))
+                    .style(Style::default().fg(Color::DarkGray)),
+                Cell::from(format_volume(stock.volume))
+                    .style(Style::default().fg(Color::LightCyan)),
             ];
             Row::new(cells).height(1)
         })

@@ -1,4 +1,6 @@
-use crate::model::{ConstituentStock, CurrencyQuote, FuturesQuote, MarketIndex, TimeRange, TrendPoint};
+use crate::model::{
+    ConstituentStock, CurrencyQuote, FuturesQuote, MarketIndex, TimeRange, TrendPoint,
+};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct MockMarketEngine {
@@ -16,7 +18,10 @@ impl MockMarketEngine {
 
     fn next_rand(&mut self) -> f64 {
         // Simple linear congruential generator for deterministic, dependency-free random floats
-        self.seed = self.seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        self.seed = self
+            .seed
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         let val = (self.seed >> 32) as u32;
         (val as f64) / (u32::MAX as f64)
     }
@@ -27,7 +32,11 @@ impl MockMarketEngine {
         let new_price = (index.current_price * (1.0 + factor)).max(0.01);
         index.current_price = (new_price * 100.0).round() / 100.0;
 
-        let base = if index.previous_close > 0.0 { index.previous_close } else { index.current_price };
+        let base = if index.previous_close > 0.0 {
+            index.previous_close
+        } else {
+            index.current_price
+        };
         index.change = (index.current_price - base * 100.0).round() / 100.0;
         index.change_percent = ((index.change / base) * 100.0 * 100.0).round() / 100.0;
 
@@ -46,7 +55,11 @@ impl MockMarketEngine {
         stock.current_price = (new_price * 100.0).round() / 100.0;
 
         let prev = stock.current_price - stock.change;
-        let base = if prev > 0.0 { prev } else { stock.current_price };
+        let base = if prev > 0.0 {
+            prev
+        } else {
+            stock.current_price
+        };
         stock.change = (stock.current_price - base * 100.0).round() / 100.0;
         stock.change_percent = ((stock.change / base) * 100.0 * 100.0).round() / 100.0;
 
@@ -57,9 +70,12 @@ impl MockMarketEngine {
             stock.day_low = stock.current_price;
         }
         // Small volume increment
-        stock.volume = stock.volume.saturating_add((self.next_rand() * 5000.0) as u64);
+        stock.volume = stock
+            .volume
+            .saturating_add((self.next_rand() * 5000.0) as u64);
         if stock.shares_outstanding > 0 {
-            stock.market_cap = (stock.current_price * stock.shares_outstanding as f64).round() as u64;
+            stock.market_cap =
+                (stock.current_price * stock.shares_outstanding as f64).round() as u64;
         }
     }
 
@@ -89,7 +105,11 @@ impl MockMarketEngine {
         future.current_price = (new_price * 100.0).round() / 100.0;
 
         let prev = future.current_price - future.change;
-        let base = if prev > 0.0 { prev } else { future.current_price };
+        let base = if prev > 0.0 {
+            prev
+        } else {
+            future.current_price
+        };
         future.change = (future.current_price - base * 100.0).round() / 100.0;
         future.change_percent = ((future.change / base) * 100.0 * 100.0).round() / 100.0;
 

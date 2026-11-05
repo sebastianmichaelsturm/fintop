@@ -52,7 +52,10 @@ pub fn create_http_client() -> Result<reqwest::Client, reqwest::Error> {
         .build()
 }
 
-pub async fn fetch_single_quote(client: &reqwest::Client, symbol: &str) -> Result<QuoteUpdate, String> {
+pub async fn fetch_single_quote(
+    client: &reqwest::Client,
+    symbol: &str,
+) -> Result<QuoteUpdate, String> {
     let url = format!(
         "https://query1.finance.yahoo.com/v8/finance/chart/{}?interval=1d&range=1d",
         symbol
@@ -76,12 +79,21 @@ pub async fn fetch_single_quote(client: &reqwest::Client, symbol: &str) -> Resul
     let result = parsed
         .chart
         .result
-        .and_then(|mut r| if !r.is_empty() { Some(r.remove(0)) } else { None })
+        .and_then(|mut r| {
+            if !r.is_empty() {
+                Some(r.remove(0))
+            } else {
+                None
+            }
+        })
         .ok_or_else(|| format!("Empty chart result for {}", symbol))?;
 
     let meta = result.meta;
     let price = meta.regular_market_price.unwrap_or(0.0);
-    let prev_close = meta.chart_previous_close.or(meta.previous_close).unwrap_or(price);
+    let prev_close = meta
+        .chart_previous_close
+        .or(meta.previous_close)
+        .unwrap_or(price);
 
     let change = if prev_close > 0.0 {
         price - prev_close
@@ -206,14 +218,26 @@ pub async fn fetch_historical_trend(
     let result = parsed
         .chart
         .result
-        .and_then(|mut r| if !r.is_empty() { Some(r.remove(0)) } else { None })
+        .and_then(|mut r| {
+            if !r.is_empty() {
+                Some(r.remove(0))
+            } else {
+                None
+            }
+        })
         .ok_or_else(|| format!("Empty historical chart result for {}", symbol))?;
 
     let timestamps = result.timestamp.unwrap_or_default();
     let closes = result
         .indicators
         .and_then(|ind| ind.quote)
-        .and_then(|mut q| if !q.is_empty() { q.remove(0).close } else { None })
+        .and_then(|mut q| {
+            if !q.is_empty() {
+                q.remove(0).close
+            } else {
+                None
+            }
+        })
         .unwrap_or_default();
 
     let count = timestamps.len().min(closes.len());
@@ -231,7 +255,10 @@ pub async fn fetch_historical_trend(
     }
 
     if points.is_empty() {
-        return Err(format!("No valid historical price points found for {}", symbol));
+        return Err(format!(
+            "No valid historical price points found for {}",
+            symbol
+        ));
     }
 
     Ok(points)
