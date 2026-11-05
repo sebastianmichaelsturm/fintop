@@ -21,11 +21,7 @@ use tokio::sync::mpsc;
 use worker::MarketWorker;
 
 #[derive(Parser, Debug)]
-#[command(
-    name = "fintop",
-    about = "A real-time top-like terminal dashboard for major market indices and constituent stocks",
-    version = "0.1.0"
-)]
+#[command(version, about)]
 pub struct Args {
     /// Run in offline demo/simulation mode without live network queries
     #[arg(short, long, default_value_t = false)]
