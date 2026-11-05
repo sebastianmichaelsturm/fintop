@@ -7,7 +7,7 @@ use ratatui::{
     Frame,
 };
 
-pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
+pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect, is_focused: bool, is_maximized: bool) {
     let active_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
     let default_style = Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD);
 
@@ -26,7 +26,7 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
     let name_style = if app.sort_column_indices == SortColumn::Name { active_style } else { default_style };
 
     let region_label = if app.sort_column_indices == SortColumn::DefaultRegion {
-        format!("Region (Priority) {}", app.sort_direction_indices.indicator())
+        format!("Region {}", app.sort_direction_indices.indicator())
     } else {
         "Region".to_string()
     };
@@ -47,21 +47,31 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
     let change_style = if app.sort_column_indices == SortColumn::ChangeAbsolute { active_style } else { default_style };
 
     let pct_label = if app.sort_column_indices == SortColumn::ChangePercent {
-        format!("Change % {}", app.sort_direction_indices.indicator())
+        format!("Chg % {}", app.sort_direction_indices.indicator())
     } else {
-        "Change %".to_string()
+        "Chg %".to_string()
     };
     let pct_style = if app.sort_column_indices == SortColumn::ChangePercent { active_style } else { default_style };
 
-    let header_cells = vec![
-        Cell::from(symbol_label).style(symbol_style),
-        Cell::from(name_label).style(name_style),
-        Cell::from(region_label).style(region_style),
-        Cell::from(points_label).style(points_style),
-        Cell::from(change_label).style(change_style),
-        Cell::from(pct_label).style(pct_style),
-        Cell::from("Day Range (Low - High)").style(default_style),
-    ];
+    let header_cells = if is_maximized {
+        vec![
+            Cell::from(symbol_label).style(symbol_style),
+            Cell::from(name_label).style(name_style),
+            Cell::from(region_label).style(region_style),
+            Cell::from(points_label).style(points_style),
+            Cell::from(change_label).style(change_style),
+            Cell::from(pct_label).style(pct_style),
+            Cell::from("Day Range (Low - High)").style(default_style),
+        ]
+    } else {
+        vec![
+            Cell::from(symbol_label).style(symbol_style),
+            Cell::from(name_label).style(name_style),
+            Cell::from(region_label).style(region_style),
+            Cell::from(points_label).style(points_style),
+            Cell::from(pct_label).style(pct_style),
+        ]
+    };
     let header = Row::new(header_cells).height(1).bottom_margin(1);
 
     let sorted = app.sorted_indices();
@@ -87,22 +97,49 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
                 "-".to_string()
             };
 
-            let cells = vec![
-                Cell::from(idx.clean_symbol().to_string()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
-                Cell::from(idx.name.clone()),
-                Cell::from(idx.region.as_str()).style(Style::default().fg(Color::LightBlue)),
-                Cell::from(format_points(idx.current_price)).style(Style::default().fg(Color::Yellow)),
-                Cell::from(format!("{}{:.2}", change_prefix, idx.change)).style(Style::default().fg(change_color)),
-                Cell::from(format!("{}{:.2}%", change_prefix, idx.change_percent)).style(Style::default().fg(change_color).add_modifier(Modifier::BOLD)),
-                Cell::from(range_str).style(Style::default().fg(Color::DarkGray)),
-            ];
+            let cells = if is_maximized {
+                vec![
+                    Cell::from(idx.clean_symbol().to_string()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                    Cell::from(idx.name.clone()),
+                    Cell::from(idx.region.as_str()).style(Style::default().fg(Color::LightBlue)),
+                    Cell::from(format_points(idx.current_price)).style(Style::default().fg(Color::Yellow)),
+                    Cell::from(format!("{}{:.2}", change_prefix, idx.change)).style(Style::default().fg(change_color)),
+                    Cell::from(format!("{}{:.2}%", change_prefix, idx.change_percent)).style(Style::default().fg(change_color).add_modifier(Modifier::BOLD)),
+                    Cell::from(range_str).style(Style::default().fg(Color::DarkGray)),
+                ]
+            } else {
+                vec![
+                    Cell::from(idx.clean_symbol().to_string()).style(Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                    Cell::from(idx.name.clone()),
+                    Cell::from(idx.region.as_str()).style(Style::default().fg(Color::LightBlue)),
+                    Cell::from(format_points(idx.current_price)).style(Style::default().fg(Color::Yellow)),
+                    Cell::from(format!("{}{:.2}%", change_prefix, idx.change_percent)).style(Style::default().fg(change_color).add_modifier(Modifier::BOLD)),
+                ]
+            };
             Row::new(cells).height(1)
         })
         .collect();
 
-    let table = Table::new(
-        rows,
-        [
+    let title = if is_focused {
+        "[1] Global Indices [ACTIVE]"
+    } else {
+        "[1] Global Indices"
+    };
+
+    let border_style = if is_focused {
+        Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+    } else {
+        Style::default().fg(Color::DarkGray)
+    };
+
+    let block = Block::default()
+        .title(title)
+        .title_style(if is_focused { Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::White) })
+        .borders(if is_maximized { Borders::NONE } else { Borders::ALL })
+        .border_style(border_style);
+
+    let constraints = if is_maximized {
+        vec![
             Constraint::Percentage(12),
             Constraint::Percentage(24),
             Constraint::Percentage(10),
@@ -110,16 +147,26 @@ pub fn render_indices_table(frame: &mut Frame, app: &mut App, area: Rect) {
             Constraint::Percentage(12),
             Constraint::Percentage(10),
             Constraint::Percentage(16),
-        ],
-    )
-    .header(header)
-    .block(Block::default().borders(Borders::NONE))
-    .row_highlight_style(
-        Style::default()
-            .bg(Color::Rgb(40, 44, 52))
-            .add_modifier(Modifier::BOLD),
-    )
-    .highlight_symbol("▶ ");
+        ]
+    } else {
+        vec![
+            Constraint::Percentage(18),
+            Constraint::Percentage(32),
+            Constraint::Percentage(14),
+            Constraint::Percentage(20),
+            Constraint::Percentage(16),
+        ]
+    };
+
+    let table = Table::new(rows, constraints)
+        .header(header)
+        .block(block)
+        .row_highlight_style(
+            Style::default()
+                .bg(Color::Rgb(40, 44, 52))
+                .add_modifier(Modifier::BOLD),
+        )
+        .highlight_symbol(if is_focused { "▶ " } else { "  " });
 
     frame.render_stateful_widget(table, area, &mut app.indices_table_state);
 }

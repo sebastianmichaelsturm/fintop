@@ -1,4 +1,4 @@
-use crate::model::{ConstituentStock, MarketIndex, TimeRange, TrendPoint};
+use crate::model::{ConstituentStock, CurrencyQuote, FuturesQuote, MarketIndex, TimeRange, TrendPoint};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct MockMarketEngine {
@@ -60,6 +60,44 @@ impl MockMarketEngine {
         stock.volume = stock.volume.saturating_add((self.next_rand() * 5000.0) as u64);
         if stock.shares_outstanding > 0 {
             stock.market_cap = (stock.current_price * stock.shares_outstanding as f64).round() as u64;
+        }
+    }
+
+    pub fn tick_currency(&mut self, currency: &mut CurrencyQuote) {
+        // Random drift between -0.2% and +0.2%
+        let factor = (self.next_rand() - 0.495) * 0.002;
+        let new_rate = (currency.rate * (1.0 + factor)).max(0.00001);
+        currency.rate = (new_rate * 10000.0).round() / 10000.0;
+
+        let prev = currency.rate - currency.change;
+        let base = if prev > 0.0 { prev } else { currency.rate };
+        currency.change = (currency.rate - base * 10000.0).round() / 10000.0;
+        currency.change_percent = ((currency.change / base) * 100.0 * 100.0).round() / 100.0;
+
+        if currency.rate > currency.day_high {
+            currency.day_high = currency.rate;
+        }
+        if currency.rate < currency.day_low || currency.day_low == 0.0 {
+            currency.day_low = currency.rate;
+        }
+    }
+
+    pub fn tick_futures(&mut self, future: &mut FuturesQuote) {
+        // Random drift between -0.4% and +0.4%
+        let factor = (self.next_rand() - 0.49) * 0.004;
+        let new_price = (future.current_price * (1.0 + factor)).max(0.01);
+        future.current_price = (new_price * 100.0).round() / 100.0;
+
+        let prev = future.current_price - future.change;
+        let base = if prev > 0.0 { prev } else { future.current_price };
+        future.change = (future.current_price - base * 100.0).round() / 100.0;
+        future.change_percent = ((future.change / base) * 100.0 * 100.0).round() / 100.0;
+
+        if future.current_price > future.day_high {
+            future.day_high = future.current_price;
+        }
+        if future.current_price < future.day_low || future.day_low == 0.0 {
+            future.day_low = future.current_price;
         }
     }
 

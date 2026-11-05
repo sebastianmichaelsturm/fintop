@@ -1,6 +1,6 @@
 # `fintop` 📈
 
-A high-performance, real-time terminal financial market tracker (inspired by `top`, `htop`, and peer tools [`ftop`](https://github.com/sebastianmichaelsturm/ftop)) that monitors major global indices and their constituent stocks in a modern Rust TUI.
+A high-performance, real-time terminal financial market tracker (inspired by `top`, `htop`, and peer tools [`ftop`](https://github.com/sebastianmichaelsturm/ftop)) that monitors **Stocks**, **Indices**, **Currencies**, and **Futures** in a modern Rust TUI.
 
 Built with **Rust**, [`ratatui`](https://ratatui.rs/), [`crossterm`](https://crates.io/crates/crossterm), and [`tokio`](https://tokio.rs/).
 
@@ -8,19 +8,21 @@ Built with **Rust**, [`ratatui`](https://ratatui.rs/), [`crossterm`](https://cra
 
 ## Features
 
-- **Global Market Indices Overview**:
-  - Displays all major indices grouped by regional hierarchy: **US Indices** (S&P 500, Nasdaq 100, Dow Jones, Russell 2000) $\to$ **European Indices** (DAX 40, FTSE 100, CAC 40, Euro Stoxx 50) $\to$ **Asian Indices** (Nikkei 225, Hang Seng).
-  - Shows index level/price, daily absolute change, percentage change, and daily high/low range.
-  - Sortable by Region Priority, Level/Price, Change %, Absolute Change, Name, or Symbol.
-- **Constituent Stocks Explorer (Detail View)**:
+- **Multi-Asset Starting Page (4-Quadrant Grid Dashboard)**:
+  - **[1] Global Market Indices**: Major benchmarks across the US, Europe, Asia-Pacific, and Americas (S&P 500, Nasdaq 100, Dow Jones, DAX 40, FTSE 100, Nikkei 225, Hang Seng, etc.).
+  - **[2] Top Benchmark Stocks**: Mega-cap market leaders (NVIDIA, Apple, Microsoft, Alphabet, Amazon, Meta, Tesla, ASML, SAP, TSMC, etc.).
+  - **[3] Currencies & Crypto**: G10 Forex pairs (EUR/USD, USD/JPY, GBP/USD, USD/CHF, AUD/USD, USD/CAD, etc.) and leading digital assets (Bitcoin `BTC-USD`, Ethereum `ETH-USD`, Solana `SOL-USD`).
+  - **[4] Futures & Commodities**: Key contracts across Energy (WTI, Brent, Nat Gas), Metals (Gold, Silver, Copper), Index Futures (E-mini S&P, Nasdaq, Dow), and Bonds (10Y Note, 30Y Bond).
+- **Interactive Panel Focus & Maximization**:
+  - Switch active panel focus with `Tab` / `BackTab` or numbers `[1]` to `[4]`.
+  - Press `m` to maximize any focused panel into full-screen view; press `Esc` or `m` to return to the 4-panel dashboard.
+- **Constituent Stocks Explorer & Interactive Trend Charts**:
   - Press `[Enter]` on any index to inspect its full constituent member stocks.
-  - Comprehensive rosters included for all major indices (DAX 40, Dow Jones 30, Euro Stoxx 50, CAC 40, FTSE 100, Nasdaq 100, S&P 500, Nikkei 225).
-  - **Largest Companies on Top by Default** (`Market Cap ▼`), sortable by Market Cap, Price, Change %, Absolute Change, Name, Symbol, or Volume.
-- **High-Efficiency Lazy Loading & On-Demand Data Fetching**:
-  - In overview mode, only queries the ~10 major index symbols in the background every 10 seconds.
-  - Constituent quotes are queried on-demand only when an index is opened, saving network bandwidth and preventing API throttling.
-  - In-memory 60-second TTL cache for instant re-entry.
-  - Graceful fallback: built-in offline simulation mode (`--demo`) ensures fluid operation anywhere.
+  - Press `[Enter]` on any stock, currency pair, or future contract to open the **Interactive Multi-Timeframe Trend Chart** (1D, 5D, 1M, 6M, 1Y, 5Y with panning).
+- **High-Efficiency Background Worker**:
+  - Live real-time market data via concurrent Yahoo Finance queries.
+  - Built-in offline simulation mode (`--demo`) with deterministic price and volatility engine.
+  - 60-second TTL caching for index constituent rosters.
 - **Top-Like Controls**:
   - Interactive sorting (`s` to cycle column, `d` to toggle direction).
   - Instant live filter/search (`/`).
@@ -65,10 +67,13 @@ fintop --interval 5
 
 | Key | Description |
 |---|---|
-| `Enter` | Open selected index to explore constituent stocks |
-| `Esc` / `Backspace` / `q` | Return from constituent view to indices overview |
-| `q` | Quit `fintop` (from indices overview) |
-| `s` | Cycle sort column |
+| `Tab` / `BackTab` | Cycle active panel focus forward / backward |
+| `1` / `2` / `3` / `4` | Directly jump to Indices (`1`), Stocks (`2`), Currencies (`3`), Futures (`4`) |
+| `m` / `f` | Toggle Maximize / Full-Screen mode for the active panel |
+| `Enter` | Open selected index constituents OR open interactive Trend Chart |
+| `Esc` / `Backspace` | Return to 4-panel dashboard from Constituent or Maximized view |
+| `q` | Return to dashboard (from subviews) OR Quit `fintop` (from dashboard) |
+| `s` | Cycle sort column for active panel |
 | `d` | Toggle sort direction (Ascending ▲ / Descending ▼) |
 | `/` | Live substring filter/search (press `Enter` to lock, `Esc` to clear) |
 | `r` | Force immediate refresh now |

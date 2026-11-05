@@ -187,6 +187,110 @@ impl MarketIndex {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DashboardSection {
+    Indices = 0,
+    Stocks = 1,
+    Currencies = 2,
+    Futures = 3,
+}
+
+impl DashboardSection {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            DashboardSection::Indices => "Indices",
+            DashboardSection::Stocks => "Stocks",
+            DashboardSection::Currencies => "Currencies",
+            DashboardSection::Futures => "Futures",
+        }
+    }
+
+    pub fn title(&self) -> &'static str {
+        match self {
+            DashboardSection::Indices => "[1] Global Indices",
+            DashboardSection::Stocks => "[2] Top Stocks",
+            DashboardSection::Currencies => "[3] Currencies & Crypto",
+            DashboardSection::Futures => "[4] Futures & Commodities",
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        match self {
+            DashboardSection::Indices => DashboardSection::Stocks,
+            DashboardSection::Stocks => DashboardSection::Currencies,
+            DashboardSection::Currencies => DashboardSection::Futures,
+            DashboardSection::Futures => DashboardSection::Indices,
+        }
+    }
+
+    pub fn prev(&self) -> Self {
+        match self {
+            DashboardSection::Indices => DashboardSection::Futures,
+            DashboardSection::Stocks => DashboardSection::Indices,
+            DashboardSection::Currencies => DashboardSection::Stocks,
+            DashboardSection::Futures => DashboardSection::Currencies,
+        }
+    }
+
+    pub fn from_index(idx: usize) -> Option<Self> {
+        match idx {
+            0 => Some(DashboardSection::Indices),
+            1 => Some(DashboardSection::Stocks),
+            2 => Some(DashboardSection::Currencies),
+            3 => Some(DashboardSection::Futures),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CurrencyQuote {
+    pub symbol: String,         // e.g. "EURUSD=X" or "BTC-USD"
+    pub display_symbol: String, // e.g. "EUR/USD" or "BTC/USD"
+    pub name: String,           // e.g. "Euro / US Dollar" or "Bitcoin"
+    pub rate: f64,
+    pub change: f64,
+    pub change_percent: f64,
+    pub day_high: f64,
+    pub day_low: f64,
+    pub base_currency: String,
+    pub quote_currency: String,
+}
+
+impl CurrencyQuote {
+    pub fn clean_symbol(&self) -> &str {
+        if !self.display_symbol.is_empty() {
+            &self.display_symbol
+        } else {
+            &self.symbol
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FuturesQuote {
+    pub symbol: String,         // e.g. "GC=F"
+    pub display_symbol: String, // e.g. "Gold"
+    pub name: String,           // e.g. "Gold Futures"
+    pub category: String,       // "Metals", "Energy", "Indices", "Bonds"
+    pub current_price: f64,
+    pub change: f64,
+    pub change_percent: f64,
+    pub day_high: f64,
+    pub day_low: f64,
+    pub unit: String,           // "$/oz", "$/bbl", "pts"
+}
+
+impl FuturesQuote {
+    pub fn clean_symbol(&self) -> &str {
+        if !self.display_symbol.is_empty() {
+            &self.display_symbol
+        } else {
+            &self.symbol
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SortColumn {
     DefaultRegion,
     MarketCap,
@@ -219,6 +323,13 @@ impl SortColumn {
         }
     }
 
+    pub fn as_str_for_currencies(&self) -> &'static str {
+        match self {
+            SortColumn::Price => "Rate",
+            _ => self.as_str(),
+        }
+    }
+
     pub fn next_for_indices(&self) -> Self {
         match self {
             SortColumn::DefaultRegion => SortColumn::ChangePercent,
@@ -239,6 +350,26 @@ impl SortColumn {
             SortColumn::Symbol => SortColumn::Volume,
             SortColumn::Volume => SortColumn::MarketCap,
             _ => SortColumn::MarketCap,
+        }
+    }
+
+    pub fn next_for_currencies(&self) -> Self {
+        match self {
+            SortColumn::ChangePercent => SortColumn::Price,
+            SortColumn::Price => SortColumn::Name,
+            SortColumn::Name => SortColumn::Symbol,
+            SortColumn::Symbol => SortColumn::ChangePercent,
+            _ => SortColumn::ChangePercent,
+        }
+    }
+
+    pub fn next_for_futures(&self) -> Self {
+        match self {
+            SortColumn::ChangePercent => SortColumn::Price,
+            SortColumn::Price => SortColumn::Name,
+            SortColumn::Name => SortColumn::Symbol,
+            SortColumn::Symbol => SortColumn::ChangePercent,
+            _ => SortColumn::ChangePercent,
         }
     }
 }
@@ -358,5 +489,28 @@ pub fn format_volume(volume: u64) -> String {
         format!("{}", volume)
     } else {
         "-".to_string()
+    }
+}
+
+pub fn format_rate(rate: f64, base_currency: &str) -> String {
+    if base_currency.eq_ignore_ascii_case("BTC")
+        || base_currency.eq_ignore_ascii_case("ETH")
+        || base_currency.eq_ignore_ascii_case("SOL")
+    {
+        format!("${}", format_with_commas(rate))
+    } else if rate >= 100.0 {
+        format!("{:.2}", rate)
+    } else if rate >= 1.0 {
+        format!("{:.4}", rate)
+    } else {
+        format!("{:.5}", rate)
+    }
+}
+
+pub fn format_futures_price(price: f64, unit: &str) -> String {
+    if unit.contains('$') {
+        format!("${}", format_with_commas(price))
+    } else {
+        format_with_commas(price)
     }
 }

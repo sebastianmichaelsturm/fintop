@@ -1,14 +1,18 @@
 pub mod constituents_table;
+pub mod currencies_table;
+pub mod dashboard;
 pub mod footer;
+pub mod futures_table;
 pub mod header;
 pub mod indices_table;
+pub mod stocks_table;
 pub mod trend_modal;
 
 use crate::app::{App, ViewMode};
 use constituents_table::render_constituents_table;
+use dashboard::{render_dashboard, render_maximized};
 use footer::render_footer;
 use header::render_header;
-use indices_table::render_indices_table;
 use trend_modal::render_trend_modal;
 use ratatui::{
     layout::{Constraint, Direction, Layout},
@@ -20,7 +24,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(4), // Header / Metrics
-            Constraint::Min(5),    // Table (Indices or Constituent Stocks)
+            Constraint::Min(5),    // Table / Dashboard
             Constraint::Length(2), // Help / Status bar
         ])
         .split(frame.area());
@@ -28,7 +32,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     render_header(frame, app, chunks[0]);
 
     match app.view_mode {
-        ViewMode::Indices => render_indices_table(frame, app, chunks[1]),
+        ViewMode::Dashboard => render_dashboard(frame, app, chunks[1]),
+        ViewMode::Maximized(sec) => render_maximized(frame, app, sec, chunks[1]),
         ViewMode::Constituents { .. } => render_constituents_table(frame, app, chunks[1]),
     }
 

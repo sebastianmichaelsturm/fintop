@@ -1,4 +1,109 @@
-use crate::model::{ConstituentStock, MarketIndex, Region};
+use crate::model::{ConstituentStock, CurrencyQuote, FuturesQuote, MarketIndex, Region};
+
+#[allow(clippy::too_many_arguments)]
+fn currency(
+    symbol: &str,
+    display: &str,
+    name: &str,
+    rate: f64,
+    chg: f64,
+    pct: f64,
+    hi: f64,
+    lo: f64,
+    base: &str,
+    quote: &str,
+) -> CurrencyQuote {
+    CurrencyQuote {
+        symbol: symbol.to_string(),
+        display_symbol: display.to_string(),
+        name: name.to_string(),
+        rate,
+        change: chg,
+        change_percent: pct,
+        day_high: hi,
+        day_low: lo,
+        base_currency: base.to_string(),
+        quote_currency: quote.to_string(),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn future(
+    symbol: &str,
+    display: &str,
+    name: &str,
+    category: &str,
+    price: f64,
+    chg: f64,
+    pct: f64,
+    hi: f64,
+    lo: f64,
+    unit: &str,
+) -> FuturesQuote {
+    FuturesQuote {
+        symbol: symbol.to_string(),
+        display_symbol: display.to_string(),
+        name: name.to_string(),
+        category: category.to_string(),
+        current_price: price,
+        change: chg,
+        change_percent: pct,
+        day_high: hi,
+        day_low: lo,
+        unit: unit.to_string(),
+    }
+}
+
+pub fn get_default_stocks() -> Vec<ConstituentStock> {
+    vec![
+        stock("NVDA", "NVIDIA Corp", "USD", 215.38, -2.56, -1.17, 219.99, 214.47, 91664000, 5_200_000_000_000),
+        stock("AAPL", "Apple Inc", "USD", 231.40, 1.20, 0.52, 233.10, 229.80, 45200000, 3_520_000_000_000),
+        stock("MSFT", "Microsoft Corp", "USD", 428.15, 3.40, 0.80, 431.20, 424.50, 18500000, 3_180_000_000_000),
+        stock("GOOGL", "Alphabet Inc Class A", "USD", 166.20, 1.80, 1.09, 167.50, 164.10, 21000000, 2_050_000_000_000),
+        stock("AMZN", "Amazon.com Inc", "USD", 187.90, 1.45, 0.78, 189.50, 186.10, 32000000, 1_960_000_000_000),
+        stock("META", "Meta Platforms Inc", "USD", 578.40, 6.20, 1.08, 584.00, 571.50, 12400000, 1_470_000_000_000),
+        stock("TSLA", "Tesla Inc", "USD", 269.20, -3.40, -1.25, 274.50, 265.80, 74000000, 850_000_000_000),
+        stock("BRK.B", "Berkshire Hathaway Inc", "USD", 452.80, 1.50, 0.33, 455.00, 450.10, 2900000, 990_000_000_000),
+        stock("AVGO", "Broadcom Inc", "USD", 178.60, 2.90, 1.65, 181.00, 175.20, 19800000, 830_000_000_000),
+        stock("LLY", "Eli Lilly and Co", "USD", 902.50, 8.40, 0.94, 912.00, 891.00, 2600000, 860_000_000_000),
+        stock("TSM", "Taiwan Semiconductor (TSMC)", "USD", 195.40, 2.80, 1.45, 198.00, 193.50, 14500000, 1_010_000_000_000),
+        stock("ASML", "ASML Holding N.V.", "USD", 655.40, 8.20, 1.27, 662.00, 648.00, 1450000, 260_000_000_000),
+        stock("SAP.DE", "SAP SE", "EUR", 221.40, 2.10, 0.96, 222.80, 219.10, 1820000, 271_000_000_000),
+        stock("MC.PA", "LVMH Moët Hennessy", "EUR", 618.50, -4.50, -0.72, 626.00, 614.00, 580000, 310_000_000_000),
+    ]
+}
+
+pub fn get_default_currencies() -> Vec<CurrencyQuote> {
+    vec![
+        currency("EURUSD=X", "EUR/USD", "Euro / US Dollar", 1.0854, -0.0018, -0.17, 1.0885, 1.0832, "EUR", "USD"),
+        currency("USDJPY=X", "USD/JPY", "US Dollar / Japanese Yen", 152.45, 0.38, 0.25, 152.88, 151.90, "USD", "JPY"),
+        currency("GBPUSD=X", "GBP/USD", "British Pound / US Dollar", 1.2985, 0.0022, 0.17, 1.3015, 1.2950, "GBP", "USD"),
+        currency("USDCHF=X", "USD/CHF", "US Dollar / Swiss Franc", 0.8672, 0.0012, 0.14, 0.8690, 0.8650, "USD", "CHF"),
+        currency("AUDUSD=X", "AUD/USD", "Australian Dollar / US Dollar", 0.6582, -0.0014, -0.21, 0.6610, 0.6565, "AUD", "USD"),
+        currency("USDCAD=X", "USD/CAD", "US Dollar / Canadian Dollar", 1.3912, 0.0018, 0.13, 1.3940, 1.3880, "USD", "CAD"),
+        currency("EURGBP=X", "EUR/GBP", "Euro / British Pound", 0.8358, -0.0028, -0.33, 0.8390, 0.8340, "EUR", "GBP"),
+        currency("USDCNY=X", "USD/CNY", "US Dollar / Chinese Yuan", 7.1240, 0.0080, 0.11, 7.1350, 7.1120, "USD", "CNY"),
+        currency("BTC-USD", "BTC/USD", "Bitcoin", 68850.00, 1420.00, 2.11, 69400.00, 67200.00, "BTC", "USD"),
+        currency("ETH-USD", "ETH/USD", "Ethereum", 2540.50, 48.20, 1.93, 2580.00, 2480.00, "ETH", "USD"),
+        currency("SOL-USD", "SOL/USD", "Solana", 182.40, 5.80, 3.28, 185.50, 175.20, "SOL", "USD"),
+    ]
+}
+
+pub fn get_default_futures() -> Vec<FuturesQuote> {
+    vec![
+        future("GC=F", "Gold", "Gold Futures", "Metals", 2748.50, 14.80, 0.54, 2758.00, 2730.00, "$/oz"),
+        future("SI=F", "Silver", "Silver Futures", "Metals", 33.85, 0.42, 1.26, 34.20, 33.30, "$/oz"),
+        future("HG=F", "Copper", "Copper Futures", "Metals", 4.38, 0.03, 0.69, 4.42, 4.34, "$/lb"),
+        future("CL=F", "WTI Oil", "Crude Oil WTI", "Energy", 71.45, -0.85, -1.18, 72.60, 70.80, "$/bbl"),
+        future("BZ=F", "Brent Oil", "Brent Crude Oil", "Energy", 75.20, -0.75, -0.99, 76.30, 74.60, "$/bbl"),
+        future("NG=F", "Nat Gas", "Natural Gas", "Energy", 2.76, 0.06, 2.22, 2.82, 2.68, "$/MMBtu"),
+        future("ES=F", "S&P Fut", "E-Mini S&P 500", "Indices", 5882.50, 26.50, 0.45, 5898.00, 5855.00, "pts"),
+        future("NQ=F", "NQ Fut", "E-Mini Nasdaq 100", "Indices", 20450.00, 155.00, 0.76, 20520.00, 20280.00, "pts"),
+        future("YM=F", "Dow Fut", "E-Mini Dow ($5)", "Indices", 42350.00, -75.00, -0.18, 42480.00, 42200.00, "pts"),
+        future("ZN=F", "10Y Note", "10-Year T-Note", "Bonds", 110.45, 0.18, 0.16, 110.65, 110.20, "pts"),
+        future("ZB=F", "30Y Bond", "30-Year T-Bond", "Bonds", 118.20, 0.25, 0.21, 118.60, 117.80, "pts"),
+    ]
+}
 
 #[allow(clippy::too_many_arguments)]
 fn stock(

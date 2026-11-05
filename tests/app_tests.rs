@@ -403,3 +403,293 @@ fn test_multi_currency_formatting() {
     assert_eq!(format_market_cap(27_500_000_000_000, "TWD"), "NT$27.50T");
     assert_eq!(format_market_cap(238_000_000_000, "CAD"), "C$238.0B");
 }
+
+#[test]
+fn test_default_datasets_populated() {
+    use fintop::provider::dataset::{get_default_currencies, get_default_futures, get_default_stocks};
+
+    let stocks = get_default_stocks();
+    assert_eq!(stocks.len(), 14, "Must contain 14 global benchmark stocks");
+    assert!(stocks.iter().any(|s| s.symbol == "NVDA"));
+    assert!(stocks.iter().any(|s| s.symbol == "AAPL"));
+    assert!(stocks.iter().any(|s| s.symbol == "MSFT"));
+    assert!(stocks.iter().any(|s| s.symbol == "ASML"));
+    assert!(stocks.iter().any(|s| s.symbol == "SAP.DE"));
+
+    let currencies = get_default_currencies();
+    assert_eq!(currencies.len(), 11, "Must contain 11 currency/crypto pairs");
+    assert!(currencies.iter().any(|c| c.symbol == "EURUSD=X"));
+    assert!(currencies.iter().any(|c| c.symbol == "USDJPY=X"));
+    assert!(currencies.iter().any(|c| c.symbol == "BTC-USD"));
+    assert!(currencies.iter().any(|c| c.symbol == "ETH-USD"));
+
+    let futures = get_default_futures();
+    assert_eq!(futures.len(), 11, "Must contain 11 futures contracts");
+    assert!(futures.iter().any(|f| f.symbol == "GC=F" && f.category == "Metals"));
+    assert!(futures.iter().any(|f| f.symbol == "CL=F" && f.category == "Energy"));
+    assert!(futures.iter().any(|f| f.symbol == "ES=F" && f.category == "Indices"));
+    assert!(futures.iter().any(|f| f.symbol == "ZN=F" && f.category == "Bonds"));
+}
+
+#[test]
+fn test_crypto_currencies_included_and_formatted() {
+    use fintop::model::format_rate;
+    use fintop::provider::dataset::get_default_currencies;
+
+    let currencies = get_default_currencies();
+    let btc = currencies.iter().find(|c| c.symbol == "BTC-USD").unwrap();
+    assert_eq!(btc.clean_symbol(), "BTC/USD");
+    assert_eq!(btc.base_currency, "BTC");
+    assert_eq!(format_rate(68850.0, &btc.base_currency), "$68,850.00");
+
+    let eth = currencies.iter().find(|c| c.symbol == "ETH-USD").unwrap();
+    assert_eq!(eth.clean_symbol(), "ETH/USD");
+    assert_eq!(eth.base_currency, "ETH");
+
+    let sol = currencies.iter().find(|c| c.symbol == "SOL-USD").unwrap();
+    assert_eq!(sol.clean_symbol(), "SOL/USD");
+    assert_eq!(sol.base_currency, "SOL");
+}
+
+#[test]
+fn test_dashboard_section_switching() {
+    use fintop::model::DashboardSection;
+
+    let (tx_cmd, _rx_cmd) = mpsc::channel(32);
+    let (_tx_evt, rx_evt) = mpsc::channel(64);
+    let mut app = App::new(tx_cmd, rx_evt, true);
+
+    // Initial state: Indices
+    assert_eq!(app.active_section, DashboardSection::Indices);
+    assert_eq!(app.active_section.title(), "[1] Global Indices");
+
+    // Cycle forward: Indices -> Stocks -> Currencies -> Futures -> Indices
+    app.cycle_section();
+    assert_eq!(app.active_section, DashboardSection::Stocks);
+    assert_eq!(app.active_section.title(), "[2] Top Stocks");
+
+    app.cycle_section();
+    assert_eq!(app.active_section, DashboardSection::Currencies);
+    assert_eq!(app.active_section.title(), "[3] Currencies & Crypto");
+
+    app.cycle_section();
+    assert_eq!(app.active_section, DashboardSection::Futures);
+    assert_eq!(app.active_section.title(), "[4] Futures & Commodities");
+
+    app.cycle_section();
+    assert_eq!(app.active_section, DashboardSection::Indices);
+
+    // Cycle backward
+    app.prev_section();
+    assert_eq!(app.active_section, DashboardSection::Futures);
+
+    app.prev_section();
+    assert_eq!(app.active_section, DashboardSection::Currencies);
+
+    // Direct jump
+    app.set_section(DashboardSection::Stocks);
+    assert_eq!(app.active_section, DashboardSection::Stocks);
+
+    app.set_section(DashboardSection::Indices);
+    assert_eq!(app.active_section, DashboardSection::Indices);
+}
+
+#[test]
+fn test_dashboard_row_navigation() {
+    use fintop::model::DashboardSection;
+
+    let (tx_cmd, _rx_cmd) = mpsc::channel(32);
+    let (_tx_evt, rx_evt) = mpsc::channel(64);
+    let mut app = App::new(tx_cmd, rx_evt, true);
+
+    // Test row navigation on Indices
+    app.set_section(DashboardSection::Indices);
+    assert_eq!(app.indices_table_state.selected(), Some(0));
+    app.next_row();
+    assert_eq!(app.indices_table_state.selected(), Some(1));
+    app.previous_row();
+    assert_eq!(app.indices_table_state.selected(), Some(0));
+
+    // Test row navigation on Stocks
+    app.set_section(DashboardSection::Stocks);
+    assert_eq!(app.stocks_table_state.selected(), Some(0));
+    app.next_row();
+    assert_eq!(app.stocks_table_state.selected(), Some(1));
+    app.previous_row();
+    assert_eq!(app.stocks_table_state.selected(), Some(0));
+
+    // Test row navigation on Currencies
+    app.set_section(DashboardSection::Currencies);
+    assert_eq!(app.currencies_table_state.selected(), Some(0));
+    app.next_row();
+    assert_eq!(app.currencies_table_state.selected(), Some(1));
+    app.previous_row();
+    assert_eq!(app.currencies_table_state.selected(), Some(0));
+
+    // Test row navigation on Futures
+    app.set_section(DashboardSection::Futures);
+    assert_eq!(app.futures_table_state.selected(), Some(0));
+    app.next_row();
+    assert_eq!(app.futures_table_state.selected(), Some(1));
+    app.previous_row();
+    assert_eq!(app.futures_table_state.selected(), Some(0));
+}
+
+#[test]
+fn test_currencies_and_futures_sorting() {
+    use fintop::model::{DashboardSection, SortColumn, SortDirection};
+
+    let (tx_cmd, _rx_cmd) = mpsc::channel(32);
+    let (_tx_evt, rx_evt) = mpsc::channel(64);
+    let mut app = App::new(tx_cmd, rx_evt, true);
+
+    // Currencies sorting
+    app.set_section(DashboardSection::Currencies);
+    assert_eq!(app.sort_column_currencies, SortColumn::ChangePercent);
+    assert_eq!(app.sort_direction_currencies, SortDirection::Descending);
+
+    let currs = app.sorted_currencies();
+    for i in 0..currs.len() - 1 {
+        assert!(
+            currs[i].change_percent >= currs[i + 1].change_percent,
+            "Currencies not sorted descending by change percent"
+        );
+    }
+
+    app.cycle_sort();
+    assert_eq!(app.sort_column_currencies, SortColumn::Price);
+    app.toggle_sort_direction();
+    assert_eq!(app.sort_direction_currencies, SortDirection::Ascending);
+
+    // Futures sorting
+    app.set_section(DashboardSection::Futures);
+    assert_eq!(app.sort_column_futures, SortColumn::ChangePercent);
+    assert_eq!(app.sort_direction_futures, SortDirection::Descending);
+
+    let futs = app.sorted_futures();
+    for i in 0..futs.len() - 1 {
+        assert!(
+            futs[i].change_percent >= futs[i + 1].change_percent,
+            "Futures not sorted descending by change percent"
+        );
+    }
+
+    app.cycle_sort();
+    assert_eq!(app.sort_column_futures, SortColumn::Price);
+    app.toggle_sort_direction();
+    assert_eq!(app.sort_direction_futures, SortDirection::Ascending);
+}
+
+#[test]
+fn test_filter_currencies_and_futures() {
+    use fintop::filter::{matches_currency, matches_futures};
+    use fintop::provider::dataset::{get_default_currencies, get_default_futures};
+
+    let currencies = get_default_currencies();
+    let btc = currencies.iter().find(|c| c.symbol == "BTC-USD").unwrap();
+    assert!(matches_currency(btc, "btc"));
+    assert!(matches_currency(btc, "Bitcoin"));
+    assert!(matches_currency(btc, "USD"));
+    assert!(!matches_currency(btc, "Yen"));
+
+    let eur = currencies.iter().find(|c| c.symbol == "EURUSD=X").unwrap();
+    assert!(matches_currency(eur, "eur"));
+    assert!(matches_currency(eur, "Euro"));
+
+    let futures = get_default_futures();
+    let gold = futures.iter().find(|f| f.symbol == "GC=F").unwrap();
+    assert!(matches_futures(gold, "gold"));
+    assert!(matches_futures(gold, "metals"));
+    assert!(matches_futures(gold, "GC"));
+    assert!(!matches_futures(gold, "Crude"));
+
+    let oil = futures.iter().find(|f| f.symbol == "CL=F").unwrap();
+    assert!(matches_futures(oil, "oil"));
+    assert!(matches_futures(oil, "Energy"));
+    assert!(matches_futures(oil, "WTI"));
+}
+
+#[test]
+fn test_mock_engine_ticks_all_asset_classes() {
+    use fintop::provider::dataset::{get_default_currencies, get_default_futures};
+
+    let mut engine = MockMarketEngine::new();
+    let mut currency = get_default_currencies()[0].clone();
+    let prev_rate = currency.rate;
+    assert!(prev_rate > 0.0);
+    engine.tick_currency(&mut currency);
+    assert!(currency.rate > 0.0);
+    assert_ne!(currency.rate, 0.0);
+    assert!(currency.day_high >= currency.rate);
+    assert!(currency.day_low <= currency.rate);
+
+    let mut future = get_default_futures()[0].clone();
+    engine.tick_futures(&mut future);
+    assert!(future.current_price > 0.0);
+    assert!(future.day_high >= future.current_price);
+    assert!(future.day_low <= future.current_price);
+}
+
+#[test]
+fn test_open_trend_modal_for_different_assets() {
+    use fintop::app::ViewMode;
+    use fintop::model::DashboardSection;
+
+    let (tx_cmd, _rx_cmd) = mpsc::channel(32);
+    let (_tx_evt, rx_evt) = mpsc::channel(64);
+    let mut app = App::new(tx_cmd, rx_evt, true);
+
+    // Initial state: Dashboard
+    assert_eq!(app.view_mode, ViewMode::Dashboard);
+
+    // 1. Open trend on Stocks
+    app.set_section(DashboardSection::Stocks);
+    app.open_trend_window();
+    assert!(app.trend_state.is_some());
+    let trend = app.trend_state.as_ref().unwrap();
+    assert_eq!(trend.symbol, "NVDA");
+    app.close_trend_window();
+    assert!(app.trend_state.is_none());
+
+    // 2. Open trend on Currencies
+    app.set_section(DashboardSection::Currencies);
+    app.open_trend_window();
+    assert!(app.trend_state.is_some());
+    app.close_trend_window();
+
+    // 3. Open trend on Futures
+    app.set_section(DashboardSection::Futures);
+    app.open_trend_window();
+    assert!(app.trend_state.is_some());
+    app.close_trend_window();
+}
+
+#[test]
+fn test_toggle_maximize() {
+    use fintop::app::ViewMode;
+    use fintop::model::DashboardSection;
+
+    let (tx_cmd, _rx_cmd) = mpsc::channel(32);
+    let (_tx_evt, rx_evt) = mpsc::channel(64);
+    let mut app = App::new(tx_cmd, rx_evt, true);
+
+    assert_eq!(app.view_mode, ViewMode::Dashboard);
+
+    // Maximize Indices
+    app.set_section(DashboardSection::Indices);
+    app.toggle_maximize();
+    assert_eq!(app.view_mode, ViewMode::Maximized(DashboardSection::Indices));
+
+    // Toggle back
+    app.toggle_maximize();
+    assert_eq!(app.view_mode, ViewMode::Dashboard);
+
+    // Maximize Futures
+    app.set_section(DashboardSection::Futures);
+    app.toggle_maximize();
+    assert_eq!(app.view_mode, ViewMode::Maximized(DashboardSection::Futures));
+
+    // Toggle back
+    app.toggle_maximize();
+    assert_eq!(app.view_mode, ViewMode::Dashboard);
+}

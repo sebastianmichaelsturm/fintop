@@ -25,6 +25,9 @@ pub enum WorkerCommand {
 #[derive(Debug)]
 pub enum WorkerEvent {
     IndicesUpdated(Vec<QuoteUpdate>),
+    TopStocksUpdated(Vec<QuoteUpdate>),
+    CurrenciesUpdated(Vec<QuoteUpdate>),
+    FuturesUpdated(Vec<QuoteUpdate>),
     StocksUpdated {
         index_id: String,
         quotes: Vec<QuoteUpdate>,
@@ -47,24 +50,34 @@ pub struct MarketWorker {
     demo_mode: bool,
     interval_secs: u64,
     index_symbols: Vec<String>,
+    stock_symbols: Vec<String>,
+    currency_symbols: Vec<String>,
+    futures_symbols: Vec<String>,
     active_constituents: Option<(String, Vec<String>)>,
     mock_engine: MockMarketEngine,
 }
 
 impl MarketWorker {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         rx_cmd: Receiver<WorkerCommand>,
         tx_evt: Sender<WorkerEvent>,
         demo_mode: bool,
         interval_secs: u64,
-        initial_index_symbols: Vec<String>,
+        index_symbols: Vec<String>,
+        stock_symbols: Vec<String>,
+        currency_symbols: Vec<String>,
+        futures_symbols: Vec<String>,
     ) -> Self {
         Self {
             rx_cmd,
             tx_evt,
             demo_mode,
             interval_secs: interval_secs.max(1),
-            index_symbols: initial_index_symbols,
+            index_symbols,
+            stock_symbols,
+            currency_symbols,
+            futures_symbols,
             active_constituents: None,
             mock_engine: MockMarketEngine::new(),
         }
@@ -119,16 +132,51 @@ impl MarketWorker {
             // In constituent view: fetch active constituent stocks on-demand
             self.fetch_active_constituents(index_id, symbols, http_client).await;
         } else {
-            // In indices view: fetch only index symbols (high efficiency)
-            self.fetch_indices(http_client).await;
+            // In dashboard view: fetch symbols across all 4 asset classes
+            self.fetch_dashboard(http_client).await;
         }
     }
 
-    async fn fetch_indices(&mut self, http_client: Option<&reqwest::Client>) {
+    async fn fetch_dashboard(&mut self, http_client: Option<&reqwest::Client>) {
+        let mut all_symbols = Vec::new();
+        all_symbols.extend(self.index_symbols.clone());
+        all_symbols.extend(self.stock_symbols.clone());
+        all_symbols.extend(self.currency_symbols.clone());
+        all_symbols.extend(self.futures_symbols.clone());
+
         if let Some(client) = http_client {
-            let quotes = fetch_quotes_batch(client, &self.index_symbols, 8).await;
+            let quotes = fetch_quotes_batch(client, &all_symbols, 12).await;
             if !quotes.is_empty() {
-                let _ = self.tx_evt.send(WorkerEvent::IndicesUpdated(quotes)).await;
+                let mut index_quotes = Vec::new();
+                let mut stock_quotes = Vec::new();
+                let mut currency_quotes = Vec::new();
+                let mut futures_quotes = Vec::new();
+
+                for q in quotes {
+                    if self.index_symbols.contains(&q.symbol) {
+                        index_quotes.push(q);
+                    } else if self.stock_symbols.contains(&q.symbol) {
+                        stock_quotes.push(q);
+                    } else if self.currency_symbols.contains(&q.symbol) {
+                        currency_quotes.push(q);
+                    } else if self.futures_symbols.contains(&q.symbol) {
+                        futures_quotes.push(q);
+                    }
+                }
+
+                if !index_quotes.is_empty() {
+                    let _ = self.tx_evt.send(WorkerEvent::IndicesUpdated(index_quotes)).await;
+                }
+                if !stock_quotes.is_empty() {
+                    let _ = self.tx_evt.send(WorkerEvent::TopStocksUpdated(stock_quotes)).await;
+                }
+                if !currency_quotes.is_empty() {
+                    let _ = self.tx_evt.send(WorkerEvent::CurrenciesUpdated(currency_quotes)).await;
+                }
+                if !futures_quotes.is_empty() {
+                    let _ = self.tx_evt.send(WorkerEvent::FuturesUpdated(futures_quotes)).await;
+                }
+
                 let _ = self.tx_evt.send(WorkerEvent::FetchStatus {
                     is_live: true,
                     status_message: "Live (Yahoo Finance)".to_string(),
@@ -138,12 +186,34 @@ impl MarketWorker {
         }
 
         // Fallback or demo simulation
-        let symbols = self.index_symbols.clone();
-        let mut simulated = Vec::new();
-        for sym in &symbols {
-            simulated.push(self.create_simulated_quote(sym));
+        let index_symbols = self.index_symbols.clone();
+        let mut sim_indices = Vec::new();
+        for sym in &index_symbols {
+            sim_indices.push(self.create_simulated_quote(sym));
         }
-        let _ = self.tx_evt.send(WorkerEvent::IndicesUpdated(simulated)).await;
+        let _ = self.tx_evt.send(WorkerEvent::IndicesUpdated(sim_indices)).await;
+
+        let stock_symbols = self.stock_symbols.clone();
+        let mut sim_stocks = Vec::new();
+        for sym in &stock_symbols {
+            sim_stocks.push(self.create_simulated_quote(sym));
+        }
+        let _ = self.tx_evt.send(WorkerEvent::TopStocksUpdated(sim_stocks)).await;
+
+        let currency_symbols = self.currency_symbols.clone();
+        let mut sim_currencies = Vec::new();
+        for sym in &currency_symbols {
+            sim_currencies.push(self.create_simulated_quote(sym));
+        }
+        let _ = self.tx_evt.send(WorkerEvent::CurrenciesUpdated(sim_currencies)).await;
+
+        let futures_symbols = self.futures_symbols.clone();
+        let mut sim_futures = Vec::new();
+        for sym in &futures_symbols {
+            sim_futures.push(self.create_simulated_quote(sym));
+        }
+        let _ = self.tx_evt.send(WorkerEvent::FuturesUpdated(sim_futures)).await;
+
         let _ = self.tx_evt.send(WorkerEvent::FetchStatus {
             is_live: false,
             status_message: if self.demo_mode { "Demo Mode".to_string() } else { "Offline (Simulated)".to_string() },

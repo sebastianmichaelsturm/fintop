@@ -63,7 +63,19 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut app = App::new(tx_cmd.clone(), rx_evt, args.demo);
 
     let index_symbols: Vec<String> = app.indices.iter().map(|i| i.symbol.clone()).collect();
-    let worker = MarketWorker::new(rx_cmd, tx_evt, args.demo, args.interval, index_symbols);
+    let stock_symbols: Vec<String> = app.top_stocks.iter().map(|s| s.symbol.clone()).collect();
+    let currency_symbols: Vec<String> = app.currencies.iter().map(|c| c.symbol.clone()).collect();
+    let futures_symbols: Vec<String> = app.futures.iter().map(|f| f.symbol.clone()).collect();
+    let worker = MarketWorker::new(
+        rx_cmd,
+        tx_evt,
+        args.demo,
+        args.interval,
+        index_symbols,
+        stock_symbols,
+        currency_symbols,
+        futures_symbols,
+    );
 
     // Spawn worker in tokio runtime
     rt.spawn(worker.run());
@@ -158,20 +170,64 @@ fn run_loop<B: ratatui::backend::Backend>(
                                     ViewMode::Constituents { .. } => {
                                         app.exit_index();
                                     }
-                                    ViewMode::Indices => {
+                                    ViewMode::Maximized(_) => {
+                                        app.toggle_maximize();
+                                    }
+                                    ViewMode::Dashboard => {
                                         return Ok(());
                                     }
                                 }
                             }
                             KeyCode::Esc | KeyCode::Backspace => {
-                                if app.view_mode != ViewMode::Indices {
-                                    app.exit_index();
+                                match app.view_mode {
+                                    ViewMode::Constituents { .. } => {
+                                        app.exit_index();
+                                    }
+                                    ViewMode::Maximized(_) => {
+                                        app.toggle_maximize();
+                                    }
+                                    ViewMode::Dashboard => {}
                                 }
+                            }
+                            KeyCode::Tab => {
+                                if app.view_mode == ViewMode::Dashboard {
+                                    app.cycle_section();
+                                }
+                            }
+                            KeyCode::BackTab => {
+                                if app.view_mode == ViewMode::Dashboard {
+                                    app.prev_section();
+                                }
+                            }
+                            KeyCode::Char(c @ '1'..='4') => {
+                                if app.view_mode == ViewMode::Dashboard {
+                                    if let Some(sec) = model::DashboardSection::from_index((c as u8 - b'1') as usize) {
+                                        app.set_section(sec);
+                                    }
+                                }
+                            }
+                            KeyCode::Char('m') | KeyCode::Char('f') => {
+                                app.toggle_maximize();
                             }
                             KeyCode::Enter => {
                                 match app.view_mode {
-                                    ViewMode::Indices => app.enter_index(),
-                                    ViewMode::Constituents { .. } => app.open_trend_window(),
+                                    ViewMode::Dashboard => {
+                                        if app.active_section == model::DashboardSection::Indices {
+                                            app.enter_index();
+                                        } else {
+                                            app.open_trend_window();
+                                        }
+                                    }
+                                    ViewMode::Maximized(sec) => {
+                                        if sec == model::DashboardSection::Indices {
+                                            app.enter_index();
+                                        } else {
+                                            app.open_trend_window();
+                                        }
+                                    }
+                                    ViewMode::Constituents { .. } => {
+                                        app.open_trend_window();
+                                    }
                                 }
                             }
                             KeyCode::Char('/') => {

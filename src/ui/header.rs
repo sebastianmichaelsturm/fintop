@@ -37,13 +37,20 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
     }
 
     match app.view_mode {
-        ViewMode::Indices => {
+        ViewMode::Dashboard => {
             title_spans.push(Span::raw(" — "));
             title_spans.push(Span::styled(
-                "Global Market Indices",
+                "Global Market Dashboard",
                 Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
             ));
-            title_spans.push(Span::raw(" (US → Europe → Asia → Global)"));
+            title_spans.push(Span::raw(" (Stocks • Indices • Currencies • Futures)"));
+        }
+        ViewMode::Maximized(sec) => {
+            title_spans.push(Span::raw(" — "));
+            title_spans.push(Span::styled(
+                format!("[MAXIMIZED] {}", sec.title()),
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            ));
         }
         ViewMode::Constituents { .. } => {
             if let Some(idx) = app.active_index() {
@@ -62,11 +69,50 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
     }
 
     let active_sort_str = match app.view_mode {
-        ViewMode::Indices => format!(
-            "{} {}",
-            app.sort_column_indices.as_str_for_indices(),
-            app.sort_direction_indices.indicator()
-        ),
+        ViewMode::Dashboard => match app.active_section {
+            crate::app::DashboardSection::Indices => format!(
+                "Indices: {} {}",
+                app.sort_column_indices.as_str_for_indices(),
+                app.sort_direction_indices.indicator()
+            ),
+            crate::app::DashboardSection::Stocks => format!(
+                "Stocks: {} {}",
+                app.sort_column_stocks.as_str(),
+                app.sort_direction_stocks.indicator()
+            ),
+            crate::app::DashboardSection::Currencies => format!(
+                "Currencies: {} {}",
+                app.sort_column_currencies.as_str_for_currencies(),
+                app.sort_direction_currencies.indicator()
+            ),
+            crate::app::DashboardSection::Futures => format!(
+                "Futures: {} {}",
+                app.sort_column_futures.as_str(),
+                app.sort_direction_futures.indicator()
+            ),
+        },
+        ViewMode::Maximized(sec) => match sec {
+            crate::app::DashboardSection::Indices => format!(
+                "Indices: {} {}",
+                app.sort_column_indices.as_str_for_indices(),
+                app.sort_direction_indices.indicator()
+            ),
+            crate::app::DashboardSection::Stocks => format!(
+                "Stocks: {} {}",
+                app.sort_column_stocks.as_str(),
+                app.sort_direction_stocks.indicator()
+            ),
+            crate::app::DashboardSection::Currencies => format!(
+                "Currencies: {} {}",
+                app.sort_column_currencies.as_str_for_currencies(),
+                app.sort_direction_currencies.indicator()
+            ),
+            crate::app::DashboardSection::Futures => format!(
+                "Futures: {} {}",
+                app.sort_column_futures.as_str(),
+                app.sort_direction_futures.indicator()
+            ),
+        },
         ViewMode::Constituents { .. } => format!(
             "{} {}",
             app.sort_column_stocks.as_str(),
@@ -74,15 +120,17 @@ pub fn render_header(frame: &mut Frame, app: &App, area: Rect) {
         ),
     };
 
-    let total_constituents: usize = app.indices.iter().map(|i| i.constituents.len()).sum();
-
     let mut metrics_spans = vec![
         Span::raw("Indices: "),
         Span::styled(format!("{}", app.indices.len()), Style::default().fg(Color::Green)),
-        Span::raw("  |  Tracked Stocks: "),
-        Span::styled(format!("{}", total_constituents), Style::default().fg(Color::Yellow)),
+        Span::raw("  |  Stocks: "),
+        Span::styled(format!("{}", app.top_stocks.len()), Style::default().fg(Color::Yellow)),
+        Span::raw("  |  Currencies: "),
+        Span::styled(format!("{}", app.currencies.len()), Style::default().fg(Color::Cyan)),
+        Span::raw("  |  Futures: "),
+        Span::styled(format!("{}", app.futures.len()), Style::default().fg(Color::Magenta)),
         Span::raw("  |  Sort: "),
-        Span::styled(active_sort_str, Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
+        Span::styled(active_sort_str, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
     ];
 
     if !app.filter_query.is_empty() {
