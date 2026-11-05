@@ -147,9 +147,9 @@ impl App {
             stocks_table_state,
             currencies_table_state,
             futures_table_state,
-            sort_column_indices: SortColumn::DefaultRegion,
-            sort_direction_indices: SortDirection::Ascending,
-            sort_column_stocks: SortColumn::MarketCap,
+            sort_column_indices: SortColumn::ChangePercent,
+            sort_direction_indices: SortDirection::Descending,
+            sort_column_stocks: SortColumn::ChangePercent,
             sort_direction_stocks: SortDirection::Descending,
             sort_column_currencies: SortColumn::ChangePercent,
             sort_direction_currencies: SortDirection::Descending,
@@ -358,9 +358,9 @@ impl App {
                 index_id: index_id.clone(),
             };
 
-            // Reset stocks table cursor to 0 (top / highest market cap)
+            // Reset stocks table cursor to 0 (top / highest positive change)
             self.stocks_table_state.select(Some(0));
-            self.sort_column_stocks = SortColumn::MarketCap;
+            self.sort_column_stocks = SortColumn::ChangePercent;
             self.sort_direction_stocks = SortDirection::Descending;
             self.filter_query.clear();
             self.is_filtering = false;

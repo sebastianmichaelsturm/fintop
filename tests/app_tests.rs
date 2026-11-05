@@ -6,10 +6,38 @@ use fintop::provider::mock::MockMarketEngine;
 use tokio::sync::mpsc;
 
 #[test]
-fn test_indices_default_region_sorting() {
+fn test_indices_default_change_sorting() {
     let (tx_cmd, _rx_cmd) = mpsc::channel(32);
     let (_tx_evt, rx_evt) = mpsc::channel(64);
     let app = App::new(tx_cmd, rx_evt, true);
+
+    // Initial state: ChangePercent descending (+ to -)
+    assert_eq!(app.sort_column_indices, SortColumn::ChangePercent);
+    assert_eq!(app.sort_direction_indices, SortDirection::Descending);
+
+    let sorted = app.sorted_indices();
+    assert_eq!(sorted.len(), 27, "Must contain all 27 global benchmarks");
+
+    for i in 0..sorted.len() - 1 {
+        assert!(
+            sorted[i].change_percent >= sorted[i + 1].change_percent,
+            "Index {} ({:.2}%) has lower change % than next {} ({:.2}%)",
+            sorted[i].symbol,
+            sorted[i].change_percent,
+            sorted[i + 1].symbol,
+            sorted[i + 1].change_percent
+        );
+    }
+}
+
+#[test]
+fn test_indices_region_sorting() {
+    let (tx_cmd, _rx_cmd) = mpsc::channel(32);
+    let (_tx_evt, rx_evt) = mpsc::channel(64);
+    let mut app = App::new(tx_cmd, rx_evt, true);
+
+    app.sort_column_indices = SortColumn::DefaultRegion;
+    app.sort_direction_indices = SortDirection::Ascending;
 
     let sorted = app.sorted_indices();
     assert_eq!(sorted.len(), 27, "Must contain all 27 global benchmarks");
@@ -20,13 +48,6 @@ fn test_indices_default_region_sorting() {
     assert!(sorted.iter().any(|i| i.region == Region::Asia));
     assert!(sorted.iter().any(|i| i.region == Region::RestOfWorld));
 
-    // Verify region hierarchy: US first (0), then Europe (1), then Asia (2), then RestOfWorld (3)
-    let first_index = &sorted[0];
-    assert_eq!(first_index.region, Region::UnitedStates);
-
-    let last_index = sorted.last().unwrap();
-    assert_eq!(last_index.region, Region::RestOfWorld);
-
     let mut last_region = Region::UnitedStates;
     for idx in &sorted {
         assert!(idx.region >= last_region, "Index {:?} region out of order", idx.name);
@@ -35,7 +56,7 @@ fn test_indices_default_region_sorting() {
 }
 
 #[test]
-fn test_constituents_default_market_cap_sorting() {
+fn test_constituents_default_change_sorting() {
     let (tx_cmd, _rx_cmd) = mpsc::channel(32);
     let (_tx_evt, rx_evt) = mpsc::channel(64);
     let mut app = App::new(tx_cmd, rx_evt, true);
@@ -43,18 +64,21 @@ fn test_constituents_default_market_cap_sorting() {
     // Enter first index
     app.enter_index();
 
+    assert_eq!(app.sort_column_stocks, SortColumn::ChangePercent);
+    assert_eq!(app.sort_direction_stocks, SortDirection::Descending);
+
     let stocks = app.sorted_constituents();
     assert!(!stocks.is_empty());
 
-    // Assert highest market cap on top (descending order)
+    // Assert highest change % on top (descending order + to -)
     for i in 0..stocks.len() - 1 {
         assert!(
-            stocks[i].market_cap >= stocks[i + 1].market_cap,
-            "Stock {} ({}) has lower market cap than next {} ({})",
+            stocks[i].change_percent >= stocks[i + 1].change_percent,
+            "Stock {} ({:.2}%) has lower change % than next {} ({:.2}%)",
             stocks[i].symbol,
-            stocks[i].market_cap,
+            stocks[i].change_percent,
             stocks[i + 1].symbol,
-            stocks[i + 1].market_cap
+            stocks[i + 1].change_percent
         );
     }
 }
@@ -119,18 +143,11 @@ fn test_sorting_columns_and_directions() {
     let (_tx_evt, rx_evt) = mpsc::channel(64);
     let mut app = App::new(tx_cmd, rx_evt, true);
 
-    // Initial state: DefaultRegion, Ascending
-    assert_eq!(app.sort_column_indices, SortColumn::DefaultRegion);
-    assert_eq!(app.sort_direction_indices, SortDirection::Ascending);
-
-    // Cycle sort
-    app.cycle_sort();
+    // Initial state: ChangePercent, Descending
     assert_eq!(app.sort_column_indices, SortColumn::ChangePercent);
-
-    // Toggle direction
-    app.toggle_sort_direction();
     assert_eq!(app.sort_direction_indices, SortDirection::Descending);
 
+    // Initial sort is descending by change percent (+ to -)
     let sorted = app.sorted_indices();
     for i in 0..sorted.len() - 1 {
         assert!(
@@ -138,6 +155,22 @@ fn test_sorting_columns_and_directions() {
             "Indices not sorted descending by change percent"
         );
     }
+
+    // Toggle direction to Ascending (- to +)
+    app.toggle_sort_direction();
+    assert_eq!(app.sort_direction_indices, SortDirection::Ascending);
+
+    let asc_sorted = app.sorted_indices();
+    for i in 0..asc_sorted.len() - 1 {
+        assert!(
+            asc_sorted[i].change_percent <= asc_sorted[i + 1].change_percent,
+            "Indices not sorted ascending by change percent"
+        );
+    }
+
+    // Cycle sort column
+    app.cycle_sort();
+    assert_eq!(app.sort_column_indices, SortColumn::Price);
 }
 
 #[test]
@@ -647,7 +680,8 @@ fn test_open_trend_modal_for_different_assets() {
     app.open_trend_window();
     assert!(app.trend_state.is_some());
     let trend = app.trend_state.as_ref().unwrap();
-    assert_eq!(trend.symbol, "NVDA");
+    let top_stock = app.sorted_top_stocks()[0].symbol.clone();
+    assert_eq!(trend.symbol, top_stock);
     app.close_trend_window();
     assert!(app.trend_state.is_none());
 
